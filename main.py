@@ -1,3 +1,4 @@
+import math
 from tkinter import *
 from PIL import ImageTk, Image
 from alpha_beta_pruning import *
@@ -17,8 +18,10 @@ class Game:
         self.window.title("Ship-Game")
         self.canvas = Canvas(self.window, width=width_of_canvas, height=height_of_canvas)
         self.canvas.pack()
-        self.blue_ship = BattleShip(459, 536, ImageTk.PhotoImage(Image.open(r"images/ship_blue.png")))
-        self.red_ship = BattleShip(459, 34, ImageTk.PhotoImage(Image.open(r"images/ship_red.png")))
+        self.whirlpool_img = ImageTk.PhotoImage(Image.open(r"images/whirlpool.png"))
+        self.whirlpool_cells = []
+        self.blue_ship = BattleShip(459, 536, 6, 11, ImageTk.PhotoImage(Image.open(r"images/ship_blue.png")))
+        self.red_ship = BattleShip(459, 34, 6, 1, ImageTk.PhotoImage(Image.open(r"images/ship_red.png")))
         self.player1 = Player("You", self.blue_ship)
         self.player2 = Player("AI", self.red_ship)
         self.board = []
@@ -28,6 +31,7 @@ class Game:
         self.window.bind('<Down>', self.down_key)
         self.window.bind('<Return>', self.enter_key)
         self.window.bind('<space>', self.space_key)
+        self.canvas.bind("<Button-1>", self.mouse_click)
         self.warning_text = ""
         self.init_board()
         self.init_story()
@@ -110,17 +114,31 @@ class Game:
         self.draw_warnings()
         self.draw_player1_info()
         self.draw_player2_info()
+        for i in range(len(self.whirlpool_cells)):
+            self.canvas.create_image((self.whirlpool_cells[i][0] - 1) * 50 + 209,
+                                     (self.whirlpool_cells[i][1] - 1) * 50 + 34,
+                                     anchor=NW, image=self.whirlpool_img)
 
     def is_position_valid(self, x, y):
         if 200 <= x <= 750 and 25 <= y <= 575:
             return True
 
-    def is_there_a_blackhole(self):
+    def is_cell_empty(self, x, y):
+        if self.player2.ship.cell_x == x and self.player2.ship.cell_y == y:
+            return False
+        for i in range(len(self.whirlpool_cells)):
+            if self.whirlpool_cells[i][0] == x and self.whirlpool_cells[i][1] == y:
+                return False
+        return True
+
+    def is_there_a_whirlpool(self):
         return False
 
     def left_key(self, event):
-        if self.is_position_valid(self.player1.ship.position_x - 50, self.player1.ship.position_y):
+        if self.is_position_valid(self.player1.ship.position_x - 50, self.player1.ship.position_y)\
+                and self.is_cell_empty(self.player1.ship.cell_x - 1, self.player1.ship.cell_y):
             self.player1.ship.position_x -= 50
+            self.player1.ship.cell_x -=1
             self.warning_text = ""
         else:
             self.warning_text = "This move is not valid. Try another move."
@@ -128,27 +146,33 @@ class Game:
         self.update_board()
 
     def right_key(self, event):
-        if self.is_position_valid(self.player1.ship.position_x + 50, self.player1.ship.position_y):
-            self.warning_text = ""
+        if self.is_position_valid(self.player1.ship.position_x + 50, self.player1.ship.position_y)\
+                and self.is_cell_empty(self.player1.ship.cell_x + 1, self.player1.ship.cell_y):
             self.player1.ship.position_x += 50
+            self.player1.ship.cell_x += 1
+            self.warning_text = ""
         else:
             self.warning_text = "This move is not valid. Try another move."
             print("This move is not valid. Try another move.")
         self.update_board()
 
     def up_key(self, event):
-        if self.is_position_valid(self.player1.ship.position_x, self.player1.ship.position_y - 50):
-            self.warning_text = ""
+        if self.is_position_valid(self.player1.ship.position_x, self.player1.ship.position_y - 50)\
+                and self.is_cell_empty(self.player1.ship.cell_x, self.player1.ship.cell_y - 1):
             self.player1.ship.position_y -= 50
+            self.player1.ship.cell_y -= 1
+            self.warning_text = ""
         else:
             self.warning_text = "This move is not valid. Try another move."
             print("This move is not valid. Try another move.")
         self.update_board()
 
     def down_key(self, event):
-        if self.is_position_valid(self.player1.ship.position_x, self.player1.ship.position_y + 50):
-            self.warning_text = ""
+        if self.is_position_valid(self.player1.ship.position_x, self.player1.ship.position_y + 50)\
+                and self.is_cell_empty(self.player1.ship.cell_x, self.player1.ship.cell_y + 1):
             self.player1.ship.position_y += 50
+            self.player1.ship.cell_y += 1
+            self.warning_text = ""
         else:
             self.warning_text = "This move is not valid. Try another move."
             print("This move is not valid. Try another move.")
@@ -160,15 +184,38 @@ class Game:
     def space_key(self, event):
         print("Space key pressed")
 
+    def mouse_click(self, event):
+        widget = event.widget
+        xc = math.ceil((widget.canvasx(event.x) - 200) / 50)
+        yc = math.ceil((widget.canvasy(event.y) - 25) / 50)
+        if (xc == self.player1.ship.cell_x and yc == self.player1.ship.cell_y)\
+                or (xc == self.player2.ship.cell_x and yc == self.player2.ship.cell_y):
+            self.warning_text = "Illegal place to send whirlpool! Please send another cell."
+        else:
+            if self.player1.ship.whirlpools > 0:
+                for i in range(len(self.whirlpool_cells)):
+                    if self.whirlpool_cells[i][0] == xc and self.whirlpool_cells[i][1] == yc:
+                        self.warning_text = "There is already a whirlpool here!"
+                        self.update_board()
+                        return
+                self.warning_text = ""
+                self.whirlpool_cells.append((xc, yc))
+                self.player1.ship.whirlpools -= 1
+            else:
+                self.warning_text = "You have run out of whirlpools!"
+        self.update_board()
+
     def mainloop(self):
         self.window.mainloop()
 
 
 class BattleShip:
 
-    def __init__(self, position_x, position_y, image):
+    def __init__(self, position_x, position_y, cell_x, cell_y, image):
         self.position_x = position_x
         self.position_y = position_y
+        self.cell_x = cell_x
+        self.cell_y = cell_y
         self.lives = lives
         self.lasers = lasers
         self.whirlpools = whirlpools
