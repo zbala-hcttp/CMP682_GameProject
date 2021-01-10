@@ -11,7 +11,6 @@ lives = 3
 lasers = 3
 whirlpools = 3
 
-
 class Game:
     def __init__(self):
         self.window = Tk()
