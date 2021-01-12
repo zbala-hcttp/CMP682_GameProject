@@ -54,6 +54,8 @@ class Game:
         for i in range(rows+1):
             self.canvas.create_line(200, i * size_of_board / (rows+1) + 25, size_of_board + 150,
                                     i * size_of_board / (rows+1) + 25)
+        self.canvas.create_rectangle(400, 25, 550, 75, outline="red", width=1.5)
+        self.canvas.create_rectangle(400, 525, 550, 575, outline="blue", width=1.5)
 
     def init_story(self):
         self.draw_story()
