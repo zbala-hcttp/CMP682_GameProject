@@ -189,7 +189,8 @@ class Game:
         xc = math.ceil((widget.canvasx(event.x) - 200) / 50)
         yc = math.ceil((widget.canvasy(event.y) - 25) / 50)
         if (xc == self.player1.ship.cell_x and yc == self.player1.ship.cell_y)\
-                or (xc == self.player2.ship.cell_x and yc == self.player2.ship.cell_y):
+                or (xc == self.player2.ship.cell_x and yc == self.player2.ship.cell_y)\
+                    or (not self.is_position_valid(event.x, event.y)):
             self.warning_text = "Illegal place to send whirlpool! Please send another cell."
         else:
             if self.player1.ship.whirlpools > 0:
