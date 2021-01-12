@@ -184,7 +184,20 @@ class Game:
         print("Enter key pressed")
 
     def space_key(self, event):
+        self.laser_effect(self.player1, self.player2)
         print("Space key pressed")
+
+    def laser_effect(self, player1, player2):
+        distance = math.dist([player1.ship.position_x, player1.ship.position_y],
+                             [player2.ship.position_x, player2.ship.position_y])
+        ratio = 50 / distance
+        laser_line = self.canvas.create_line(player1.ship.position_x, player1.ship.position_y,
+                                             player1.ship.position_x + ratio * (player2.ship.position_x - player1.ship.position_x),
+                                             player1.ship.position_y + ratio * (player2.ship.position_y - player1.ship.position_y),
+                                             fill="yellow", width=3)
+        print(player1.ship.position_x)
+        print(player2.ship.position_x)
+        self.canvas.move(laser_line, 50, 0)
 
     def mouse_click(self, event):
         widget = event.widget
