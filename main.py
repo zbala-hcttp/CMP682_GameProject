@@ -1,5 +1,6 @@
 import math
 from tkinter import *
+from tkinter.messagebox import showinfo
 from PIL import ImageTk, Image
 from alpha_beta_pruning import *
 
@@ -10,7 +11,9 @@ rows = 11
 cols = 11
 lives = 3
 lasers = 3
-whirlpools = 3
+whirlpools = 5
+bombs = 3
+
 
 class Game:
     def __init__(self):
@@ -29,19 +32,20 @@ class Game:
         self.window.bind('<Right>', self.right_key)
         self.window.bind('<Up>', self.up_key)
         self.window.bind('<Down>', self.down_key)
-        self.window.bind('<Return>', self.enter_key)
+        # self.window.bind('<Return>', self.enter_key)
         self.window.bind('<space>', self.space_key)
-        self.canvas.bind("<Button-1>", self.mouse_click)
+        self.window.bind("<Button-1>", self.mouse_click)
         self.warning_text = ""
         self.init_board()
-        self.init_story()
-        self.init_warnings()
-        self.init_player1_info()
-        self.init_player2_info()
 
     def init_board(self):
+        self.canvas.delete("all")
         self.draw_board()
         self.place_ships()
+        self.draw_story()
+        self.draw_warnings()
+        self.draw_player1_info()
+        self.draw_player2_info()
 
     def draw_board(self):
         for i in range(rows):
@@ -57,9 +61,6 @@ class Game:
         self.canvas.create_rectangle(400, 25, 550, 75, outline="red", width=1.5)
         self.canvas.create_rectangle(400, 525, 550, 575, outline="blue", width=1.5)
 
-    def init_story(self):
-        self.draw_story()
-
     def draw_story(self):
         self.canvas.create_rectangle(10, 25, 180, 575)
         self.canvas.create_text(95, 38, anchor=CENTER, text="Story", fill="blue", font=("Purisa", 12))
@@ -72,16 +73,10 @@ class Game:
                                      "You have only 3\nchances to withstand the\nlaser attacks."
                                      "Reach his\nport before he reaches\nyours and win the game!")
 
-    def init_warnings(self):
-        self.draw_warnings()
-
     def draw_warnings(self):
         self.canvas.create_rectangle(200, 600, 750, 640)
         self.canvas.create_text(203, 603, anchor=NW, text="Warning >> " + self.warning_text,
                                 fill="red", font=("Purisa", 12))
-
-    def init_player2_info(self):
-        self.draw_player2_info()
 
     def draw_player2_info(self):
         self.canvas.create_rectangle(770, 25, 990, 275)
@@ -90,9 +85,6 @@ class Game:
         self.canvas.create_text(773, 55, anchor=NW, fill="red", font=("Purisa", 11),
                                 text="lives : " + str(self.player2.ship.lives) +
                                      "\nwhirlpools : " + str(self.player2.ship.whirlpools))
-
-    def init_player1_info(self):
-        self.draw_player1_info()
 
     def draw_player1_info(self):
         self.canvas.create_rectangle(770, 325, 990, 575)
@@ -121,6 +113,17 @@ class Game:
                                      (self.whirlpool_cells[i][1] - 1) * 50 + 34,
                                      anchor=NW, image=self.whirlpool_img)
 
+    def new_game(self):
+        self.player1.lives = lives
+        self.player1.lasers = lasers
+        self.player1.whirlpools = whirlpools
+        self.player1.ship = BattleShip(459, 536, 6, 11, ImageTk.PhotoImage(Image.open(r"images/ship_blue.png")))
+        self.player2.lives = lives
+        self.player2.lasers = lasers
+        self.player2.whirlpools = whirlpools
+        self.player2.ship = BattleShip(459, 34, 6, 1, ImageTk.PhotoImage(Image.open(r"images/ship_red.png")))
+        self.whirlpool_cells = []
+
     def is_position_valid(self, x, y):
         if 200 <= x <= 750 and 25 <= y <= 575:
             return True
@@ -133,9 +136,6 @@ class Game:
                 return False
         return True
 
-    def is_there_a_whirlpool(self):
-        return False
-
     def left_key(self, event):
         if self.is_position_valid(self.player1.ship.position_x - 50, self.player1.ship.position_y)\
                 and self.is_cell_empty(self.player1.ship.cell_x - 1, self.player1.ship.cell_y):
@@ -144,8 +144,8 @@ class Game:
             self.warning_text = ""
         else:
             self.warning_text = "This move is not valid. Try another move."
-            print("This move is not valid. Try another move.")
         self.update_board()
+        self.has_player1_won()
 
     def right_key(self, event):
         if self.is_position_valid(self.player1.ship.position_x + 50, self.player1.ship.position_y)\
@@ -155,8 +155,8 @@ class Game:
             self.warning_text = ""
         else:
             self.warning_text = "This move is not valid. Try another move."
-            print("This move is not valid. Try another move.")
         self.update_board()
+        self.has_player1_won()
 
     def up_key(self, event):
         if self.is_position_valid(self.player1.ship.position_x, self.player1.ship.position_y - 50)\
@@ -166,8 +166,8 @@ class Game:
             self.warning_text = ""
         else:
             self.warning_text = "This move is not valid. Try another move."
-            print("This move is not valid. Try another move.")
         self.update_board()
+        self.has_player1_won()
 
     def down_key(self, event):
         if self.is_position_valid(self.player1.ship.position_x, self.player1.ship.position_y + 50)\
@@ -177,15 +177,22 @@ class Game:
             self.warning_text = ""
         else:
             self.warning_text = "This move is not valid. Try another move."
-            print("This move is not valid. Try another move.")
         self.update_board()
-
-    def enter_key(self, event):
-        print("Enter key pressed")
 
     def space_key(self, event):
         self.laser_effect(self.player1, self.player2)
-        print("Space key pressed")
+
+    def has_player1_won(self):
+        if 400 < self.player1.ship.position_x < 550 and 25 < self.player1.ship.position_y < 75:
+            showinfo("Game Over", "YOU WIN!")
+            self.new_game()
+            self.init_board()
+
+    def has_player2_won(self):
+        if 400 < self.player2.ship.position_x < 550 and 525 < self.player2.ship.position_y < 575:
+            showinfo("Game Over", "YOU LOSE!")
+            self.new_game()
+            self.init_board()
 
     def laser_effect(self, player1, player2):
         distance = math.dist([player1.ship.position_x, player1.ship.position_y],
