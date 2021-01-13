@@ -66,12 +66,12 @@ class Game:
         self.canvas.create_text(95, 38, anchor=CENTER, text="Story", fill="blue", font=("Purisa", 12))
         self.canvas.create_line(10, 50, 180, 50)
         self.canvas.create_text(13, 55, anchor=NW, fill="green", font=("Purisa", 11),
-                                text="Enemy is waiting to sink\nyour ship! You need "
-                                     "to be\naware to the laser attacks\nfrom the enemy "
-                                     "and the\nwhirlpools. You have 3\nblocks range to shoot "
-                                     "the\nenemy ship with your\nlaser and 5 whirlpool\nattacks."
-                                     "You have only 3\nchances to withstand the\nlaser attacks."
-                                     "Reach his\nport before he reaches\nyours and win the game!")
+                                text="Reach to the opposite\nport before your enemy\nreaches to yours\nand win the game!"
+                                     "\n\nWatch out for your\nenemy! He can send\nwhirpools to your way or\nhe can sink your "
+                                     "ship\nusing lasers.\n\nEach player has 3 lasers\nand 5 whirlpool attacks.\n"
+                                     "Lasers can be used\nwithin 3 blocks range.\n"
+                                     "Ships can survive only\n3 laser attacks."
+                                     "\n\nGood luck!")
 
     def draw_warnings(self):
         self.canvas.create_rectangle(200, 600, 750, 640)
@@ -83,7 +83,7 @@ class Game:
         self.canvas.create_text(880, 38, anchor=CENTER, text=self.player2.name, fill="red", font=("Purisa", 12))
         self.canvas.create_line(770, 50, 990, 50)
         self.canvas.create_text(773, 55, anchor=NW, fill="red", font=("Purisa", 11),
-                                text="lives : " + str(self.player2.ship.lives) +
+                                text="lives : " + str(self.player2.lives) +
                                      "\nwhirlpools : " + str(self.player2.ship.whirlpools))
 
     def draw_player1_info(self):
@@ -91,7 +91,7 @@ class Game:
         self.canvas.create_text(880, 338, anchor=CENTER, text=self.player1.name, fill="blue", font=("Purisa", 12))
         self.canvas.create_line(770, 350, 990, 350)
         self.canvas.create_text(773, 355, anchor=NW, fill="blue", font=("Purisa", 11),
-                                text="lives : " + str(self.player1.ship.lives) +
+                                text="lives : " + str(self.player1.lives) +
                                      "\nwhirlpools : " + str(self.player1.ship.whirlpools))
 
     def place_ships(self):
@@ -115,12 +115,8 @@ class Game:
 
     def new_game(self):
         self.player1.lives = lives
-        self.player1.lasers = lasers
-        self.player1.whirlpools = whirlpools
         self.player1.ship = BattleShip(459, 536, 6, 11, ImageTk.PhotoImage(Image.open(r"images/ship_blue.png")))
         self.player2.lives = lives
-        self.player2.lasers = lasers
-        self.player2.whirlpools = whirlpools
         self.player2.ship = BattleShip(459, 34, 6, 1, ImageTk.PhotoImage(Image.open(r"images/ship_red.png")))
         self.whirlpool_cells = []
 
@@ -180,31 +176,52 @@ class Game:
         self.update_board()
 
     def space_key(self, event):
-        self.laser_effect(self.player1, self.player2)
+        self.send_laser(self.player1, self.player2)
 
     def has_player1_won(self):
-        if 400 < self.player1.ship.position_x < 550 and 25 < self.player1.ship.position_y < 75:
-            showinfo("Game Over", "YOU WIN!")
-            self.new_game()
-            self.init_board()
+        if (400 < self.player1.ship.position_x < 550 and 25 < self.player1.ship.position_y < 75) or self.player2.is_out_of_lives():
+            self.player_won()
 
     def has_player2_won(self):
-        if 400 < self.player2.ship.position_x < 550 and 525 < self.player2.ship.position_y < 575:
-            showinfo("Game Over", "YOU LOSE!")
-            self.new_game()
-            self.init_board()
+        if (400 < self.player2.ship.position_x < 550 and 525 < self.player2.ship.position_y < 575) or self.player1.is_out_of_lives():
+            self.player_lost()
 
-    def laser_effect(self, player1, player2):
-        distance = math.dist([player1.ship.position_x, player1.ship.position_y],
-                             [player2.ship.position_x, player2.ship.position_y])
-        ratio = 50 / distance
-        laser_line = self.canvas.create_line(player1.ship.position_x, player1.ship.position_y,
-                                             player1.ship.position_x + ratio * (player2.ship.position_x - player1.ship.position_x),
-                                             player1.ship.position_y + ratio * (player2.ship.position_y - player1.ship.position_y),
-                                             fill="yellow", width=3)
-        print(player1.ship.position_x)
-        print(player2.ship.position_x)
-        self.canvas.move(laser_line, 50, 0)
+    def player_won(self):
+        showinfo("Game Over", "YOU WON!")
+        self.new_game()
+        self.init_board()
+
+    def player_lost(self):
+        showinfo("Game Over", "YOU LOST!")
+        self.new_game()
+        self.init_board()
+
+    def calculate_euclidean_distance_of_ships(self):
+        distance = math.sqrt(sum((px - qx) ** 2.0 for px, qx in zip([self.player1.ship.position_x, self.player1.ship.position_y],
+                                                                    [self.player2.ship.position_x, self.player2.ship.position_y])))
+        return distance
+
+    def send_laser(self, from_player, to_player):
+        if self.calculate_euclidean_distance_of_ships() < 200 and from_player.ship.has_lasers:
+            self.canvas.create_line(from_player.ship.position_x, from_player.ship.position_y,
+                                    to_player.ship.position_x, to_player.ship.position_y,
+                                    fill="yellow", width=3)
+            from_player.ship.lasers -= 1
+            to_player.lives -= 1
+            self.has_player1_won()
+            self.has_player2_won()
+
+    # def laser_effect(self, player1, player2):
+    #     distance = math.dist([player1.ship.position_x, player1.ship.position_y],
+    #                          [player2.ship.position_x, player2.ship.position_y])
+    #     ratio = 50 / distance
+    #     laser_line = self.canvas.create_line(player1.ship.position_x, player1.ship.position_y,
+    #                                          player1.ship.position_x + ratio * (player2.ship.position_x - player1.ship.position_x),
+    #                                          player1.ship.position_y + ratio * (player2.ship.position_y - player1.ship.position_y),
+    #                                          fill="yellow", width=3)
+    #     print(player1.ship.position_x)
+    #     print(player2.ship.position_x)
+    #     self.canvas.move(laser_line, 50, 0)
 
     def mouse_click(self, event):
         widget = event.widget
@@ -239,22 +256,22 @@ class BattleShip:
         self.position_y = position_y
         self.cell_x = cell_x
         self.cell_y = cell_y
-        self.lives = lives
         self.lasers = lasers
         self.whirlpools = whirlpools
         self.image = image
 
-    def is_out_of_lives(self):
-        return self.lives == 0
-
-    def is_out_of_lasers(self):
-        return self.lasers == 0
+    def has_lasers(self):
+        return self.lasers > 0
 
 
 class Player:
     def __init__(self, name, ship):
         self.name = name
         self.ship = ship
+        self.lives = lives
+
+    def is_out_of_lives(self):
+        return self.lives == 0
 
 
 if __name__ == '__main__':
