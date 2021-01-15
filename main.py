@@ -2,7 +2,6 @@ import math
 from tkinter import *
 from tkinter.messagebox import showinfo
 from PIL import ImageTk, Image
-from alpha_beta_pruning import *
 
 width_of_canvas = 1000
 height_of_canvas = 650
@@ -27,6 +26,7 @@ class Game:
         self.red_ship = BattleShip(459, 34, 6, 1, ImageTk.PhotoImage(Image.open(r"images/ship_red.png")))
         self.player1 = Player("You", self.blue_ship)
         self.player2 = Player("AI", self.red_ship)
+        self.is_end = "None"
         self.board = []
         self.window.bind('<Left>', self.left_key)
         self.window.bind('<Right>', self.right_key)
@@ -132,11 +132,20 @@ class Game:
                 return False
         return True
 
+    def move(self, player, cell_x, cell_y):
+        if self.is_position_valid(player.ship.position_x + 50*cell_x, player.ship.position_y + 50*cell_y)\
+                and self.is_cell_empty(player.ship.cell_x + cell_x, player.ship.cell_y + cell_y):
+            player.ship.position_x += 50*cell_x
+            player.ship.cell_x += cell_x
+            player.ship.position_y += 50*cell_y
+            player.ship.cell_y += cell_y
+            return True
+        else:
+            return False
+
     def left_key(self, event):
-        if self.is_position_valid(self.player1.ship.position_x - 50, self.player1.ship.position_y)\
-                and self.is_cell_empty(self.player1.ship.cell_x - 1, self.player1.ship.cell_y):
-            self.player1.ship.position_x -= 50
-            self.player1.ship.cell_x -=1
+        result = self.move(self.player1, -1, 0)
+        if result:
             self.warning_text = ""
         else:
             self.warning_text = "This move is not valid. Try another move."
@@ -144,10 +153,8 @@ class Game:
         self.has_player1_won()
 
     def right_key(self, event):
-        if self.is_position_valid(self.player1.ship.position_x + 50, self.player1.ship.position_y)\
-                and self.is_cell_empty(self.player1.ship.cell_x + 1, self.player1.ship.cell_y):
-            self.player1.ship.position_x += 50
-            self.player1.ship.cell_x += 1
+        result = self.move(self.player1, 1, 0)
+        if result:
             self.warning_text = ""
         else:
             self.warning_text = "This move is not valid. Try another move."
@@ -155,10 +162,8 @@ class Game:
         self.has_player1_won()
 
     def up_key(self, event):
-        if self.is_position_valid(self.player1.ship.position_x, self.player1.ship.position_y - 50)\
-                and self.is_cell_empty(self.player1.ship.cell_x, self.player1.ship.cell_y - 1):
-            self.player1.ship.position_y -= 50
-            self.player1.ship.cell_y -= 1
+        result = self.move(self.player1, 0, -1)
+        if result:
             self.warning_text = ""
         else:
             self.warning_text = "This move is not valid. Try another move."
@@ -166,10 +171,8 @@ class Game:
         self.has_player1_won()
 
     def down_key(self, event):
-        if self.is_position_valid(self.player1.ship.position_x, self.player1.ship.position_y + 50)\
-                and self.is_cell_empty(self.player1.ship.cell_x, self.player1.ship.cell_y + 1):
-            self.player1.ship.position_y += 50
-            self.player1.ship.cell_y += 1
+        result = self.move(self.player1, 0, 1)
+        if result:
             self.warning_text = ""
         else:
             self.warning_text = "This move is not valid. Try another move."
@@ -179,11 +182,15 @@ class Game:
         self.send_laser(self.player1, self.player2)
 
     def has_player1_won(self):
-        if (400 < self.player1.ship.position_x < 550 and 25 < self.player1.ship.position_y < 75) or self.player2.is_out_of_lives():
+        if (400 < self.player1.ship.position_x < 550 and 25 < self.player1.ship.position_y < 75) \
+                or self.player2.is_out_of_lives():
+            self.is_end = "You"
             self.player_won()
 
     def has_player2_won(self):
-        if (400 < self.player2.ship.position_x < 550 and 525 < self.player2.ship.position_y < 575) or self.player1.is_out_of_lives():
+        if (400 < self.player2.ship.position_x < 550 and 525 < self.player2.ship.position_y < 575) \
+                or self.player1.is_out_of_lives():
+            self.is_end = "AI"
             self.player_lost()
 
     def player_won(self):
@@ -197,12 +204,13 @@ class Game:
         self.init_board()
 
     def calculate_euclidean_distance_of_ships(self):
-        distance = math.sqrt(sum((px - qx) ** 2.0 for px, qx in zip([self.player1.ship.position_x, self.player1.ship.position_y],
-                                                                    [self.player2.ship.position_x, self.player2.ship.position_y])))
+        distance = math.sqrt(sum((px - qx) ** 2.0 for px, qx
+                                 in zip([self.player1.ship.position_x, self.player1.ship.position_y],
+                                        [self.player2.ship.position_x, self.player2.ship.position_y])))
         return distance
 
     def send_laser(self, from_player, to_player):
-        if self.calculate_euclidean_distance_of_ships() < 200 and from_player.ship.has_lasers:
+        if self.is_close(from_player, to_player):
             self.canvas.create_line(from_player.ship.position_x, from_player.ship.position_y,
                                     to_player.ship.position_x, to_player.ship.position_y,
                                     fill="yellow", width=3)
@@ -210,6 +218,19 @@ class Game:
             to_player.lives -= 1
             self.has_player1_won()
             self.has_player2_won()
+
+    def put_whirlpool(self, player, x, y):
+        if (x == self.player1.ship.cell_x and y == self.player1.ship.cell_y)\
+                or (x == self.player2.ship.cell_x and y == self.player2.ship.cell_y):
+            return False
+        else:
+            if player.ship.whirlpools > 0:
+                for i in range(len(self.whirlpool_cells)):
+                    if self.whirlpool_cells[i][0] == x and self.whirlpool_cells[i][1] == y:
+                        return False
+                player.ship.whirlpools -= 1
+                return True
+            return False
 
     def mouse_click(self, event):
         widget = event.widget
@@ -232,6 +253,131 @@ class Game:
             else:
                 self.warning_text = "You have run out of whirlpools!"
         self.update_board()
+
+    def is_close(self, from_player, to_player):
+        if self.calculate_euclidean_distance_of_ships() < 200 and from_player.ship.has_lasers:
+            return True
+
+    def max_alpha_beta(self, alpha, beta):
+        maxv = 2
+        action = ""
+        cell_x = 0
+        cell_y = 0
+        result = self.is_end
+
+        if result == "AI":
+            return (-1, "nothing", 0, 0)
+        elif result == "You":
+            return (1, "nothing", 0, 0)
+
+        if self.is_close(self.player2, self.player1):
+            self.player2.ship.lasers -= 1
+            self.player1.ship.lives -= 1
+            (m, a, x, y) = self.min_alpha_beta(alpha, beta)
+            if m > maxv:
+                maxv = m
+                action = a
+                cell_x = x
+                cell_y = y
+            self.player2.ship.lasers += 1
+            self.player1.ship.lives += 1
+            if maxv >= beta:
+                return (maxv, action, cell_x, cell_y)
+            if maxv > alpha:
+                alpha = maxv
+
+        for i in [-1, 0, 1]:
+            for j in [-1, 0, 1]:
+                if self.move(self.player2, i, j):
+                    (m, a, x, y) = self.min_alpha_beta(alpha, beta)
+                    if m > maxv:
+                        maxv = m
+                        action = a
+                        cell_x = x
+                        cell_y = y
+                    self.move(self.player2, -i, -j)
+                    if maxv >= beta:
+                        return (maxv, action, cell_x, cell_y)
+                    if maxv > alpha:
+                        alpha = maxv
+
+        for i in range(1, 12):
+            for j in range(1, 12):
+                if self.put_whirlpool(self.player2, i, j):
+                    (m, a, x, y) = self.min_alpha_beta(alpha, beta)
+                    if m > maxv:
+                        maxv = m
+                        action = a
+                        cell_x = x
+                        cell_y = y
+                    self.whirlpool_cells.pop()
+                    self.player2.ship.whirlpools += 1
+                    if maxv >= beta:
+                        return (maxv, action, cell_x, cell_y)
+                    if maxv > alpha:
+                        alpha = maxv
+
+        return (maxv, action, x, y)
+
+    def min_alpha_beta(self, alpha, beta):
+        minv= -2
+        action = ""
+        x = 0
+        y = 0
+        result = self.is_end
+        if result == "AI":
+            return (-1, "nothing", 0, 0)
+        elif result == "You":
+            return (1, "nothing", 0, 0)
+
+        if self.is_close(self.player1, self.player2):
+            self.player1.ship.lasers -= 1
+            self.player2.ship.lives -= 1
+            (m, a, x, y) = self.max_alpha_beta(alpha, beta)
+            if m < minv:
+                minv = m
+                action = a
+                cell_x = x
+                cell_y = y
+            self.player1.ship.lasers += 1
+            self.player2.ship.lives += 1
+            if minv <= alpha:
+                return (minv, action, cell_x, cell_y)
+            if minv < beta:
+                beta = minv
+
+        for i in [-1, 0, 1]:
+            for j in [-1, 0, 1]:
+                if self.move(self.player1, i, j):
+                    (m, a, x, y) = self.max_alpha_beta(alpha, beta)
+                    if m < minv:
+                        minv = m
+                        action = a
+                        cell_x = x
+                        cell_y = y
+                    self.move(self.player1, -i, -j)
+                    if minv <= alpha:
+                        return (minv, action, cell_x, cell_y)
+                    if minv < beta:
+                        beta = minv
+
+        for i in range(1, 12):
+            for j in range(1, 12):
+                if self.put_whirlpool(self.player1, i, j):
+                    (m, a, x, y) = self.max_alpha_beta(alpha, beta)
+                    if m < minv:
+                        minv = m
+                        action = a
+                        cell_x = x
+                        cell_y = y
+                    self.whirlpool_cells.pop()
+                    self.player1.ship.whirlpools += 1
+                    if minv <= alpha:
+                        return (minv, action, cell_x, cell_y)
+                    if minv < beta:
+                        beta = minv
+
+        return (minv, action, x, y)
 
     def mainloop(self):
         self.window.mainloop()
