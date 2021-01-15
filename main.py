@@ -211,18 +211,6 @@ class Game:
             self.has_player1_won()
             self.has_player2_won()
 
-    # def laser_effect(self, player1, player2):
-    #     distance = math.dist([player1.ship.position_x, player1.ship.position_y],
-    #                          [player2.ship.position_x, player2.ship.position_y])
-    #     ratio = 50 / distance
-    #     laser_line = self.canvas.create_line(player1.ship.position_x, player1.ship.position_y,
-    #                                          player1.ship.position_x + ratio * (player2.ship.position_x - player1.ship.position_x),
-    #                                          player1.ship.position_y + ratio * (player2.ship.position_y - player1.ship.position_y),
-    #                                          fill="yellow", width=3)
-    #     print(player1.ship.position_x)
-    #     print(player2.ship.position_x)
-    #     self.canvas.move(laser_line, 50, 0)
-
     def mouse_click(self, event):
         widget = event.widget
         xc = math.ceil((widget.canvasx(event.x) - 200) / 50)
