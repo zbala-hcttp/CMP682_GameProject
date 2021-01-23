@@ -26,6 +26,7 @@ class Game:
         self.red_ship = BattleShip(459, 34, 6, 1, ImageTk.PhotoImage(Image.open(r"images/ship_red.png")))
         self.player1 = Player("You", self.blue_ship)
         self.player2 = Player("AI", self.red_ship)
+        self.turn = True
         self.is_end = "None"
         self.board = []
         self.window.bind('<Left>', self.left_key)
@@ -75,7 +76,11 @@ class Game:
 
     def draw_warnings(self):
         self.canvas.create_rectangle(200, 600, 750, 640)
-        self.canvas.create_text(203, 603, anchor=NW, text="Warning >> " + self.warning_text,
+        turn = "AI's turn"
+        if self.turn:
+            turn = "Your turn"
+        self.canvas.create_text(475, 610, anchor=CENTER, text=turn, fill="magenta", font=("Purisa", 12))
+        self.canvas.create_text(203, 620, anchor=NW, text="Warning >> " + self.warning_text,
                                 fill="red", font=("Purisa", 12))
 
     def draw_player2_info(self):
@@ -114,6 +119,7 @@ class Game:
                                      anchor=NW, image=self.whirlpool_img)
 
     def new_game(self):
+        self.turn = True
         self.player1.lives = lives
         self.player1.ship = BattleShip(459, 536, 6, 11, ImageTk.PhotoImage(Image.open(r"images/ship_blue.png")))
         self.player2.lives = lives
@@ -144,42 +150,67 @@ class Game:
             return False
 
     def left_key(self, event):
-        result = self.move(self.player1, -1, 0)
-        if result:
-            self.warning_text = ""
+        if self.turn:
+            result = self.move(self.player1, -1, 0)
+            if result:
+                self.warning_text = ""
+            else:
+                self.warning_text = "This move is not valid. Try another move."
+            self.turn = False
+            self.update_board()
+            self.has_player1_won()
         else:
-            self.warning_text = "This move is not valid. Try another move."
-        self.update_board()
-        self.has_player1_won()
+            self.warning_text = "It is AI's turn!"
+            self.update_board()
 
     def right_key(self, event):
-        result = self.move(self.player1, 1, 0)
-        if result:
-            self.warning_text = ""
+        if self.turn:
+            result = self.move(self.player1, 1, 0)
+            if result:
+                self.warning_text = ""
+            else:
+                self.warning_text = "This move is not valid. Try another move."
+            self.turn = False
+            self.update_board()
+            self.has_player1_won()
         else:
-            self.warning_text = "This move is not valid. Try another move."
-        self.update_board()
-        self.has_player1_won()
+            self.warning_text = "It is AI's turn!"
+            self.update_board()
 
     def up_key(self, event):
-        result = self.move(self.player1, 0, -1)
-        if result:
-            self.warning_text = ""
+        if self.turn:
+            result = self.move(self.player1, 0, -1)
+            if result:
+                self.warning_text = ""
+            else:
+                self.warning_text = "This move is not valid. Try another move."
+            self.turn = False
+            self.update_board()
+            self.has_player1_won()
         else:
-            self.warning_text = "This move is not valid. Try another move."
-        self.update_board()
-        self.has_player1_won()
+            self.warning_text = "It is AI's turn!"
+            self.update_board()
 
     def down_key(self, event):
-        result = self.move(self.player1, 0, 1)
-        if result:
-            self.warning_text = ""
+        if self.turn:
+            result = self.move(self.player1, 0, 1)
+            if result:
+                self.warning_text = ""
+            else:
+                self.warning_text = "This move is not valid. Try another move."
+            self.turn = False
+            self.update_board()
         else:
-            self.warning_text = "This move is not valid. Try another move."
-        self.update_board()
+            self.warning_text = "It is AI's turn!"
+            self.update_board()
 
     def space_key(self, event):
-        self.send_laser(self.player1, self.player2)
+        if self.turn:
+            self.send_laser(self.player1, self.player2)
+            self.turn = False
+        else:
+            self.warning_text = "It is AI's turn!"
+            self.update_board()
 
     def has_player1_won(self):
         if (400 < self.player1.ship.position_x < 550 and 25 < self.player1.ship.position_y < 75) \
@@ -233,25 +264,29 @@ class Game:
             return False
 
     def mouse_click(self, event):
-        widget = event.widget
-        xc = math.ceil((widget.canvasx(event.x) - 200) / 50)
-        yc = math.ceil((widget.canvasy(event.y) - 25) / 50)
-        if (xc == self.player1.ship.cell_x and yc == self.player1.ship.cell_y)\
-                or (xc == self.player2.ship.cell_x and yc == self.player2.ship.cell_y)\
-                    or (not self.is_position_valid(event.x, event.y)):
-            self.warning_text = "Illegal place to send whirlpool! Please send another cell."
-        else:
-            if self.player1.ship.whirlpools > 0:
-                for i in range(len(self.whirlpool_cells)):
-                    if self.whirlpool_cells[i][0] == xc and self.whirlpool_cells[i][1] == yc:
-                        self.warning_text = "There is already a whirlpool here!"
-                        self.update_board()
-                        return
-                self.warning_text = ""
-                self.whirlpool_cells.append((xc, yc))
-                self.player1.ship.whirlpools -= 1
+        if self.turn:
+            widget = event.widget
+            xc = math.ceil((widget.canvasx(event.x) - 200) / 50)
+            yc = math.ceil((widget.canvasy(event.y) - 25) / 50)
+            if (xc == self.player1.ship.cell_x and yc == self.player1.ship.cell_y)\
+                    or (xc == self.player2.ship.cell_x and yc == self.player2.ship.cell_y)\
+                        or (not self.is_position_valid(event.x, event.y)):
+                self.warning_text = "Illegal place to send whirlpool! Please send another cell."
             else:
-                self.warning_text = "You have run out of whirlpools!"
+                if self.player1.ship.whirlpools > 0:
+                    for i in range(len(self.whirlpool_cells)):
+                        if self.whirlpool_cells[i][0] == xc and self.whirlpool_cells[i][1] == yc:
+                            self.warning_text = "There is already a whirlpool here!"
+                            self.update_board()
+                            return
+                    self.warning_text = ""
+                    self.whirlpool_cells.append((xc, yc))
+                    self.player1.ship.whirlpools -= 1
+                    self.turn = False
+                else:
+                    self.warning_text = "You have run out of whirlpools!"
+        else:
+            self.warning_text = "It is AI's turn!"
         self.update_board()
 
     def is_close(self, from_player, to_player):
@@ -378,6 +413,9 @@ class Game:
                         beta = minv
 
         return (minv, action, x, y)
+
+    def play(self):
+        print("nothing happens yet")
 
     def mainloop(self):
         self.window.mainloop()
