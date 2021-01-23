@@ -159,6 +159,7 @@ class Game:
             self.turn = False
             self.update_board()
             self.has_player1_won()
+            self.play()
         else:
             self.warning_text = "It is AI's turn!"
             self.update_board()
@@ -173,6 +174,7 @@ class Game:
             self.turn = False
             self.update_board()
             self.has_player1_won()
+            self.play()
         else:
             self.warning_text = "It is AI's turn!"
             self.update_board()
@@ -187,6 +189,7 @@ class Game:
             self.turn = False
             self.update_board()
             self.has_player1_won()
+            self.play()
         else:
             self.warning_text = "It is AI's turn!"
             self.update_board()
@@ -200,6 +203,7 @@ class Game:
                 self.warning_text = "This move is not valid. Try another move."
             self.turn = False
             self.update_board()
+            self.play()
         else:
             self.warning_text = "It is AI's turn!"
             self.update_board()
@@ -208,6 +212,7 @@ class Game:
         if self.turn:
             self.send_laser(self.player1, self.player2)
             self.turn = False
+            self.play()
         else:
             self.warning_text = "It is AI's turn!"
             self.update_board()
@@ -283,6 +288,7 @@ class Game:
                     self.whirlpool_cells.append((xc, yc))
                     self.player1.ship.whirlpools -= 1
                     self.turn = False
+                    self.play()
                 else:
                     self.warning_text = "You have run out of whirlpools!"
         else:
@@ -307,7 +313,8 @@ class Game:
 
         if self.is_close(self.player2, self.player1):
             self.player2.ship.lasers -= 1
-            self.player1.ship.lives -= 1
+            self.player1.lives -= 1
+            action = "laser"
             (m, a, x, y) = self.min_alpha_beta(alpha, beta)
             if m > maxv:
                 maxv = m
@@ -315,7 +322,7 @@ class Game:
                 cell_x = x
                 cell_y = y
             self.player2.ship.lasers += 1
-            self.player1.ship.lives += 1
+            self.player1.lives += 1
             if maxv >= beta:
                 return (maxv, action, cell_x, cell_y)
             if maxv > alpha:
@@ -324,6 +331,7 @@ class Game:
         for i in [-1, 0, 1]:
             for j in [-1, 0, 1]:
                 if self.move(self.player2, i, j):
+                    action = "move"
                     (m, a, x, y) = self.min_alpha_beta(alpha, beta)
                     if m > maxv:
                         maxv = m
@@ -339,6 +347,7 @@ class Game:
         for i in range(1, 12):
             for j in range(1, 12):
                 if self.put_whirlpool(self.player2, i, j):
+                    action = "whirlpool"
                     (m, a, x, y) = self.min_alpha_beta(alpha, beta)
                     if m > maxv:
                         maxv = m
@@ -366,8 +375,9 @@ class Game:
             return (1, "nothing", 0, 0)
 
         if self.is_close(self.player1, self.player2):
+            action = "laser"
             self.player1.ship.lasers -= 1
-            self.player2.ship.lives -= 1
+            self.player2.lives -= 1
             (m, a, x, y) = self.max_alpha_beta(alpha, beta)
             if m < minv:
                 minv = m
@@ -375,7 +385,7 @@ class Game:
                 cell_x = x
                 cell_y = y
             self.player1.ship.lasers += 1
-            self.player2.ship.lives += 1
+            self.player2.lives += 1
             if minv <= alpha:
                 return (minv, action, cell_x, cell_y)
             if minv < beta:
@@ -384,6 +394,7 @@ class Game:
         for i in [-1, 0, 1]:
             for j in [-1, 0, 1]:
                 if self.move(self.player1, i, j):
+                    action = "move"
                     (m, a, x, y) = self.max_alpha_beta(alpha, beta)
                     if m < minv:
                         minv = m
@@ -399,6 +410,7 @@ class Game:
         for i in range(1, 12):
             for j in range(1, 12):
                 if self.put_whirlpool(self.player1, i, j):
+                    action = "whirlpool"
                     (m, a, x, y) = self.max_alpha_beta(alpha, beta)
                     if m < minv:
                         minv = m
@@ -415,7 +427,16 @@ class Game:
         return (minv, action, x, y)
 
     def play(self):
-        print("nothing happens yet")
+        (minv, action, x, y) = self.max_alpha_beta(-2, 2)
+        if action == "laser":
+            self.send_laser(self.player2, self.player1)
+        elif action == "move":
+            self.move(self.player2, x, y)
+        elif action == "whirlpool":
+            self.put_whirlpool(self.player2, x, y)
+        self.turn = True
+        self.update_board()
+        self.has_player2_won()
 
     def mainloop(self):
         self.window.mainloop()
