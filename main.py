@@ -364,6 +364,8 @@ class Game:
                 if self.move(self.player2, i, j):
                     print("AI move "+ str(i) + " " + str(j))
                     action = "move"
+                    cell_x = i
+                    cell_y = j
                     (m, a, x, y) = self.min_alpha_beta(alpha, beta)
                     if m > maxv:
                         maxv = m
@@ -384,6 +386,8 @@ class Game:
                 if self.put_blackhole(self.player2, i, j):
                     self.blackhole_cells.append((i, j))
                     action = "blackhole"
+                    cell_x = i
+                    cell_y = j
                     (m, a, x, y) = self.min_alpha_beta(alpha, beta)
                     if m > maxv:
                         maxv = m
@@ -437,6 +441,8 @@ class Game:
                     continue
                 if self.move(self.player1, i, j):
                     action = "move"
+                    cell_x = i
+                    cell_y = j
                     (m, a, x, y) = self.max_alpha_beta(alpha, beta)
                     if m < minv:
                         minv = m
@@ -453,6 +459,8 @@ class Game:
             for j in range(1, 12):
                 if self.put_blackhole(self.player1, i, j):
                     action = "blackhole"
+                    cell_x = i
+                    cell_y = j
                     self.blackhole_cells.append((i, j))
                     (m, a, x, y) = self.max_alpha_beta(alpha, beta)
                     if m < minv:
@@ -477,6 +485,7 @@ class Game:
             self.move(self.player2, x, y)
         elif action == "blackhole":
             self.put_blackhole(self.player2, x, y)
+        print(action+ " " + str(x)+ " "+str(y))
         self.turn = True
         self.update_board()
         self.has_player2_won()
