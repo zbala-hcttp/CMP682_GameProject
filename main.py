@@ -130,7 +130,8 @@ class Game:
             return True
 
     def is_cell_empty(self, x, y):
-        if self.player2.ship.cell_x == x and self.player2.ship.cell_y == y:
+        if (self.player2.ship.cell_x == x and self.player2.ship.cell_y == y) \
+                or (self.player1.ship.cell_x == x and self.player1.ship.cell_y == y):
             return False
         for i in range(len(self.blackhole_cells)):
             if self.blackhole_cells[i][0] == x and self.blackhole_cells[i][1] == y:
@@ -153,12 +154,13 @@ class Game:
             result = self.move(self.player1, -1, 0)
             if result:
                 self.warning_text = ""
+                self.turn = False
+                self.update_board()
+                self.has_player1_won()
+                self.play()
             else:
                 self.warning_text = "This move is not valid. Try another move."
-            self.turn = False
-            self.update_board()
-            self.has_player1_won()
-            self.play()
+                self.update_board()
         else:
             self.warning_text = "It is AI's turn!"
             self.update_board()
@@ -168,12 +170,13 @@ class Game:
             result = self.move(self.player1, 1, 0)
             if result:
                 self.warning_text = ""
+                self.turn = False
+                self.update_board()
+                self.has_player1_won()
+                self.play()
             else:
                 self.warning_text = "This move is not valid. Try another move."
-            self.turn = False
-            self.update_board()
-            self.has_player1_won()
-            self.play()
+                self.has_player1_won()
         else:
             self.warning_text = "It is AI's turn!"
             self.update_board()
@@ -183,12 +186,14 @@ class Game:
             result = self.move(self.player1, 0, -1)
             if result:
                 self.warning_text = ""
+                self.turn = False
+                self.update_board()
+                self.has_player1_won()
+                self.play()
             else:
                 self.warning_text = "This move is not valid. Try another move."
-            self.turn = False
-            self.update_board()
-            self.has_player1_won()
-            self.play()
+                self.update_board()
+
         else:
             self.warning_text = "It is AI's turn!"
             self.update_board()
@@ -198,11 +203,12 @@ class Game:
             result = self.move(self.player1, 0, 1)
             if result:
                 self.warning_text = ""
+                self.turn = False
+                self.update_board()
+                self.play()
             else:
                 self.warning_text = "This move is not valid. Try another move."
-            self.turn = False
-            self.update_board()
-            self.play()
+                self.update_board()
         else:
             self.warning_text = "It is AI's turn!"
             self.update_board()
@@ -334,10 +340,10 @@ class Game:
             return (1, "nothing", 0, 0)
         elif result == "You" or self.player2.is_out_of_lives():
             return (-1, "nothing", 0, 0)
-        elif depth >= 1000:
+        elif depth >= 2000:
             return (0, "nothing", 0, 0)
 
-        if self.is_close(self.player2, self.player1):
+        if self.is_close(self.player2, self.player1) and self.player2.ship.lasers > 0:
             print("laser AI")
             self.player2.ship.lasers -= 1
             self.player1.lives -= 1
@@ -377,10 +383,10 @@ class Game:
                     if maxv > alpha:
                         alpha = maxv
 
-        for i in range(1, 12):
-            for j in range(1, 12):
-                if (j == 1 and (i == 5 or i == 6 or i == 7)) or \
-                        (j == 11 and (i == 5 or i == 6 or i == 7)):
+        for i in range(1, 6):
+            for j in range(1, 6):
+                if (j == 1 and (i == 2 or i == 3 or i == 4)) or \
+                        (j == 5 and (i == 2 or i == 3 or i == 4)):
                     continue
                 if self.put_blackhole(self.player2, i, j):
                     self.blackhole_cells.append((i, j))
@@ -405,8 +411,8 @@ class Game:
     def min_alpha_beta(self, alpha, beta):
         minv= 2
         action = ""
-        x = 0
-        y = 0
+        cell_x = 0
+        cell_y = 0
         global depth
         depth += 1
         result = self.has_ended()
@@ -414,10 +420,10 @@ class Game:
             return (1, "nothing", 0, 0)
         elif result == "You":
             return (-1, "nothing", 0, 0)
-        elif depth >= 1000:
+        elif depth >= 2000:
             return (0, "nothing", 0, 0)
 
-        if self.is_close(self.player1, self.player2):
+        if self.is_close(self.player1, self.player2) and self.player1.ship.lasers > 0:
             action = "laser"
             self.player1.ship.lasers -= 1
             self.player2.lives -= 1
@@ -454,8 +460,11 @@ class Game:
                     if minv < beta:
                         beta = minv
 
-        for i in range(1, 12):
-            for j in range(1, 12):
+        for i in range(1, 6):
+            for j in range(1, 6):
+                if (j == 1 and (i == 2 or i == 3 or i == 4)) or \
+                        (j == 5 and (i == 2 or i == 3 or i == 4)):
+                    continue
                 if self.put_blackhole(self.player1, i, j):
                     action = "blackhole"
                     cell_x = i
@@ -477,6 +486,8 @@ class Game:
         return (minv, action, cell_x, cell_y)
 
     def play(self):
+        global depth
+        depth = 0
         (minv, action, x, y) = self.max_alpha_beta(-2, 2)
         if action == "laser":
             self.send_laser(self.player2, self.player1)
@@ -484,6 +495,7 @@ class Game:
             self.move(self.player2, x, y)
         elif action == "blackhole":
             self.blackhole_cells.append((x, y))
+            self.player2.ship.blackholes -= 1
         print(action + " " + str(x)+ " "+str(y))
         self.turn = True
         self.update_board()
