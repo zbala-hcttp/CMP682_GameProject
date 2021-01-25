@@ -401,7 +401,7 @@ class Game:
                     if maxv > alpha:
                         alpha = maxv
 
-        return (maxv, action, x, y)
+        return (maxv, action, cell_x, cell_y)
 
     def min_alpha_beta(self, alpha, beta):
         minv= 2
@@ -475,7 +475,7 @@ class Game:
                     if minv < beta:
                         beta = minv
 
-        return (minv, action, x, y)
+        return (minv, action, cell_x, cell_y)
 
     def play(self):
         (minv, action, x, y) = self.max_alpha_beta(-2, 2)
@@ -484,7 +484,7 @@ class Game:
         elif action == "move":
             self.move(self.player2, x, y)
         elif action == "blackhole":
-            self.put_blackhole(self.player2, x, y)
+            self.blackhole_cells.append((x, y))
         print(action+ " " + str(x)+ " "+str(y))
         self.turn = True
         self.update_board()
