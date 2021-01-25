@@ -3,11 +3,11 @@ from tkinter import *
 from tkinter.messagebox import showinfo
 from PIL import ImageTk, Image
 
-width_of_canvas = 1000
+width_of_canvas = 950
 height_of_canvas = 650
 size_of_board = 600
-rows = 11
-cols = 11
+rows = 5
+cols = 5
 lives = 3
 lasers = 3
 blackholes = 3
@@ -20,10 +20,10 @@ class Game:
         self.window.title("Spaceship Game")
         self.canvas = Canvas(self.window, width=width_of_canvas, height=height_of_canvas)
         self.canvas.pack()
-        self.blackhole_img = ImageTk.PhotoImage(Image.open(r"images/whirlpool.png"))
+        self.blackhole_img = ImageTk.PhotoImage(Image.open(r"images/blackhole.png"))
         self.blackhole_cells = []
-        self.blue_ship = BattleShip(459, 536, 6, 11, ImageTk.PhotoImage(Image.open(r"images/spaceship.png")))
-        self.red_ship = BattleShip(459, 34, 6, 1, ImageTk.PhotoImage(Image.open(r"images/ai_spaceship.png")))
+        self.blue_ship = BattleShip(419, 442, 3, 5, ImageTk.PhotoImage(Image.open(r"images/spaceship.png")))
+        self.red_ship = BattleShip(419, 48, 3, 1, ImageTk.PhotoImage(Image.open(r"images/ai_spaceship.png")))
         self.player1 = Player("You", self.blue_ship)
         self.player2 = Player("AI", self.red_ship)
         self.turn = True
@@ -33,7 +33,6 @@ class Game:
         self.window.bind('<Right>', self.right_key)
         self.window.bind('<Up>', self.up_key)
         self.window.bind('<Down>', self.down_key)
-        # self.window.bind('<Return>', self.enter_key)
         self.window.bind('<space>', self.space_key)
         self.window.bind("<Button-1>", self.mouse_click)
         self.warning_text = ""
@@ -54,16 +53,16 @@ class Game:
                 self.board.append((i, j))
         for i in range(cols+1):
             self.canvas.create_line(i * size_of_board / (cols+1) + 200, 25,
-                                    i * size_of_board / (cols+1) + 200, size_of_board - 25)
+                                    i * size_of_board / (cols+1) + 200, size_of_board - 75)
 
         for i in range(rows+1):
-            self.canvas.create_line(200, i * size_of_board / (rows+1) + 25, size_of_board + 150,
+            self.canvas.create_line(200, i * size_of_board / (rows+1) + 25, size_of_board + 100,
                                     i * size_of_board / (rows+1) + 25)
-        self.canvas.create_rectangle(400, 25, 550, 75, outline="#C70039", width=1.5)
-        self.canvas.create_rectangle(400, 525, 550, 575, outline="#2980B9", width=1.5)
+        self.canvas.create_rectangle(300, 25, 600, 125, outline="#C70039", width=2)
+        self.canvas.create_rectangle(300, 425, 600, 525, outline="#2980B9", width=2)
 
     def draw_story(self):
-        self.canvas.create_rectangle(10, 25, 180, 575)
+        self.canvas.create_rectangle(10, 25, 180, 525)
         self.canvas.create_text(95, 38, anchor=CENTER, text="Story", fill="#0E6655", font=("Purisa", 12, "bold"))
         self.canvas.create_line(10, 50, 180, 50)
         self.canvas.create_text(13, 55, anchor=NW, fill="#138D75", font=("Purisa", 11),
@@ -75,27 +74,27 @@ class Game:
                                      "\n\nGood luck!")
 
     def draw_warnings(self):
-        self.canvas.create_rectangle(200, 600, 750, 640)
+        self.canvas.create_rectangle(200, 550, 700, 600)
         turn = "AI's turn"
         if self.turn:
             turn = "Your turn"
-        self.canvas.create_text(475, 610, anchor=CENTER, text=turn, fill="#D81B60", font=("Purisa", 12))
-        self.canvas.create_text(203, 620, anchor=NW, text="Warning >> " + self.warning_text,
+        self.canvas.create_text(475, 560, anchor=CENTER, text=turn, fill="#D81B60", font=("Purisa", 12))
+        self.canvas.create_text(203, 570, anchor=NW, text="Warning >> " + self.warning_text,
                                 fill="#CB4335", font=("Purisa", 12, "bold"))
 
     def draw_player2_info(self):
-        self.canvas.create_rectangle(770, 25, 990, 275)
-        self.canvas.create_text(880, 38, anchor=CENTER, text=self.player2.name, fill="#BF0238", font=("Purisa", 12, "bold"))
-        self.canvas.create_line(770, 50, 990, 50)
-        self.canvas.create_text(773, 55, anchor=NW, fill="#C70039", font=("Purisa", 11),
+        self.canvas.create_rectangle(720, 25, 940, 225)
+        self.canvas.create_text(830, 38, anchor=CENTER, text=self.player2.name, fill="#BF0238", font=("Purisa", 12, "bold"))
+        self.canvas.create_line(720, 50, 940, 50)
+        self.canvas.create_text(725, 55, anchor=NW, fill="#C70039", font=("Purisa", 11),
                                 text="lives : " + str(self.player2.lives) +
                                      "\nblackholes : " + str(self.player2.ship.blackholes))
 
     def draw_player1_info(self):
-        self.canvas.create_rectangle(770, 325, 990, 575)
-        self.canvas.create_text(880, 338, anchor=CENTER, text=self.player1.name, fill="#1B618E", font=("Purisa", 12, "bold"))
-        self.canvas.create_line(770, 350, 990, 350)
-        self.canvas.create_text(773, 355, anchor=NW, fill="#2471A3", font=("Purisa", 11),
+        self.canvas.create_rectangle(720, 325, 940, 525)
+        self.canvas.create_text(830, 338, anchor=CENTER, text=self.player1.name, fill="#1B618E", font=("Purisa", 12, "bold"))
+        self.canvas.create_line(720, 350, 940, 350)
+        self.canvas.create_text(725, 355, anchor=NW, fill="#2471A3", font=("Purisa", 11),
                                 text="lives : " + str(self.player1.lives) +
                                      "\nblackholes : " + str(self.player1.ship.blackholes))
 
@@ -114,20 +113,20 @@ class Game:
         self.draw_player1_info()
         self.draw_player2_info()
         for i in range(len(self.blackhole_cells)):
-            self.canvas.create_image((self.blackhole_cells[i][0] - 1) * 50 + 209,
-                                     (self.blackhole_cells[i][1] - 1) * 50 + 34,
+            self.canvas.create_image((self.blackhole_cells[i][0] - 1) * 100 + 218,
+                                     (self.blackhole_cells[i][1] - 1) * 100 + 42,
                                      anchor=NW, image=self.blackhole_img)
 
     def new_game(self):
         self.turn = True
         self.player1.lives = lives
-        self.player1.ship = BattleShip(459, 536, 6, 11, ImageTk.PhotoImage(Image.open(r"images/spaceship.png")))
+        self.player1.ship = BattleShip(419, 442, 3, 5, ImageTk.PhotoImage(Image.open(r"images/spaceship.png")))
         self.player2.lives = lives
-        self.player2.ship = BattleShip(459, 34, 6, 1, ImageTk.PhotoImage(Image.open(r"images/ai_spaceship.png")))
+        self.player2.ship = BattleShip(419, 48, 3, 1, ImageTk.PhotoImage(Image.open(r"images/ai_spaceship.png")))
         self.blackhole_cells = []
 
     def is_position_valid(self, x, y):
-        if 200 <= x <= 750 and 25 <= y <= 575:
+        if 200 <= x <= 700 and 25 <= y <= 525:
             return True
 
     def is_cell_empty(self, x, y):
@@ -139,11 +138,11 @@ class Game:
         return True
 
     def move(self, player, cell_x, cell_y):
-        if self.is_position_valid(player.ship.position_x + 50*cell_x, player.ship.position_y + 50*cell_y)\
+        if self.is_position_valid(player.ship.position_x + 100*cell_x, player.ship.position_y + 100*cell_y)\
                 and self.is_cell_empty(player.ship.cell_x + cell_x, player.ship.cell_y + cell_y):
-            player.ship.position_x += 50*cell_x
+            player.ship.position_x += 100*cell_x
             player.ship.cell_x += cell_x
-            player.ship.position_y += 50*cell_y
+            player.ship.position_y += 100*cell_y
             player.ship.cell_y += cell_y
             return True
         else:
@@ -218,13 +217,13 @@ class Game:
             self.update_board()
 
     def has_player1_won(self):
-        if (400 < self.player1.ship.position_x < 550 and 25 < self.player1.ship.position_y < 75) \
+        if (300 < self.player1.ship.position_x < 600 and 25 < self.player1.ship.position_y < 125) \
                 or self.player2.is_out_of_lives():
             self.is_end = "You"
             self.player_won()
 
     def has_player2_won(self):
-        if (400 < self.player2.ship.position_x < 550 and 525 < self.player2.ship.position_y < 575) \
+        if (300 < self.player2.ship.position_x < 600 and 425 < self.player2.ship.position_y < 525) \
                 or self.player1.is_out_of_lives():
             self.is_end = "AI"
             self.player_lost()
@@ -275,8 +274,8 @@ class Game:
     def mouse_click(self, event):
         if self.turn:
             widget = event.widget
-            xc = math.ceil((widget.canvasx(event.x) - 200) / 50)
-            yc = math.ceil((widget.canvasy(event.y) - 25) / 50)
+            xc = math.ceil((widget.canvasx(event.x) - 200) / 100)
+            yc = math.ceil((widget.canvasy(event.y) - 25) / 100)
             if (xc == self.player1.ship.cell_x and yc == self.player1.ship.cell_y)\
                     or (xc == self.player2.ship.cell_x and yc == self.player2.ship.cell_y)\
                         or (not self.is_position_valid(event.x, event.y)):
@@ -314,10 +313,10 @@ class Game:
         return False
 
     def has_ended(self):
-        if (400 < self.player1.ship.position_x < 550 and 25 < self.player1.ship.position_y < 75) \
+        if (300 < self.player1.ship.position_x < 600 and 25 < self.player1.ship.position_y < 125) \
                 or self.player2.is_out_of_lives():
             return "You"
-        if (400 < self.player2.ship.position_x < 550 and 525 < self.player2.ship.position_y < 575) \
+        if (300 < self.player2.ship.position_x < 600 and 425 < self.player2.ship.position_y < 525) \
                 or self.player1.is_out_of_lives():
             return "AI"
         return "None"
@@ -485,7 +484,7 @@ class Game:
             self.move(self.player2, x, y)
         elif action == "blackhole":
             self.blackhole_cells.append((x, y))
-        print(action+ " " + str(x)+ " "+str(y))
+        print(action + " " + str(x)+ " "+str(y))
         self.turn = True
         self.update_board()
         self.has_player2_won()
