@@ -10,7 +10,7 @@ rows = 5
 cols = 5
 lives = 3
 lasers = 3
-blackholes = 3
+blackholes = 2
 depth = 0
 
 
@@ -263,19 +263,17 @@ class Game:
             self.has_player2_won()
 
     def put_blackhole(self, player, x, y):
-        if player.is_out_of_lives():
+        if player.ship.blackholes <= 0:
             return False
-        if (x == self.player1.ship.cell_x and y == self.player1.ship.cell_y)\
+        elif (x == self.player1.ship.cell_x and y == self.player1.ship.cell_y)\
                 or (x == self.player2.ship.cell_x and y == self.player2.ship.cell_y):
             return False
         else:
-            if player.ship.blackholes > 0:
-                for i in range(len(self.blackhole_cells)):
-                    if self.blackhole_cells[i][0] == x and self.blackhole_cells[i][1] == y:
-                        return False
-                player.ship.blackholes -= 1
-                return True
-            return False
+            for i in range(len(self.blackhole_cells)):
+                if self.blackhole_cells[i][0] == x and self.blackhole_cells[i][1] == y:
+                    return False
+            player.ship.blackholes -= 1
+            return True
 
     def mouse_click(self, event):
         if self.turn:
@@ -340,7 +338,7 @@ class Game:
             return (1, "nothing", 0, 0)
         elif result == "You" or self.player2.is_out_of_lives():
             return (-1, "nothing", 0, 0)
-        elif depth >= 2000:
+        elif depth >= 10000:
             return (0, "nothing", 0, 0)
 
         if self.is_close(self.player2, self.player1) and self.player2.ship.lasers > 0:
@@ -382,29 +380,31 @@ class Game:
                         return (maxv, action, cell_x, cell_y)
                     if maxv > alpha:
                         alpha = maxv
-
-        for i in range(1, 6):
-            for j in range(1, 6):
-                if (j == 1 and (i == 2 or i == 3 or i == 4)) or \
-                        (j == 5 and (i == 2 or i == 3 or i == 4)):
-                    continue
-                if self.put_blackhole(self.player2, i, j):
-                    self.blackhole_cells.append((i, j))
-                    action = "blackhole"
-                    cell_x = i
-                    cell_y = j
-                    (m, a, x, y) = self.min_alpha_beta(alpha, beta)
-                    if m > maxv:
-                        maxv = m
-                        action = a
-                        cell_x = x
-                        cell_y = y
-                    self.blackhole_cells.pop()
-                    self.player2.ship.blackholes += 1
-                    if maxv >= beta:
-                        return (maxv, action, cell_x, cell_y)
-                    if maxv > alpha:
-                        alpha = maxv
+        if self.player2.ship.blackholes > 0:
+            for i in range(1, 6):
+                for j in range(1, 6):
+                    if (j == 1 and (i == 2 or i == 3 or i == 4)) or \
+                            (j == 5 and (i == 2 or i == 3 or i == 4)):
+                        continue
+                    if self.put_blackhole(self.player2, i, j):
+                        self.blackhole_cells.append((i, j))
+                        action = "blackhole"
+                        cell_x = i
+                        cell_y = j
+                        (m, a, x, y) = self.min_alpha_beta(alpha, beta)
+                        if m > maxv:
+                            maxv = m
+                            action = a
+                            cell_x = x
+                            cell_y = y
+                        self.blackhole_cells.pop()
+                        self.player2.ship.blackholes += 1
+                        if maxv >= beta:
+                            return (maxv, action, cell_x, cell_y)
+                        if maxv > alpha:
+                            alpha = maxv
+                    else:
+                        continue
 
         return (maxv, action, cell_x, cell_y)
 
@@ -420,7 +420,7 @@ class Game:
             return (1, "nothing", 0, 0)
         elif result == "You":
             return (-1, "nothing", 0, 0)
-        elif depth >= 2000:
+        elif depth >= 10000:
             return (0, "nothing", 0, 0)
 
         if self.is_close(self.player1, self.player2) and self.player1.ship.lasers > 0:
@@ -459,29 +459,31 @@ class Game:
                         return (minv, action, cell_x, cell_y)
                     if minv < beta:
                         beta = minv
-
-        for i in range(1, 6):
-            for j in range(1, 6):
-                if (j == 1 and (i == 2 or i == 3 or i == 4)) or \
-                        (j == 5 and (i == 2 or i == 3 or i == 4)):
-                    continue
-                if self.put_blackhole(self.player1, i, j):
-                    action = "blackhole"
-                    cell_x = i
-                    cell_y = j
-                    self.blackhole_cells.append((i, j))
-                    (m, a, x, y) = self.max_alpha_beta(alpha, beta)
-                    if m < minv:
-                        minv = m
-                        action = a
-                        cell_x = x
-                        cell_y = y
-                    self.blackhole_cells.pop()
-                    self.player1.ship.blackholes += 1
-                    if minv <= alpha:
-                        return (minv, action, cell_x, cell_y)
-                    if minv < beta:
-                        beta = minv
+        if self.player1.ship.blackholes > 0:
+            for i in range(1, 6):
+                for j in range(1, 6):
+                    if (j == 1 and (i == 2 or i == 3 or i == 4)) or \
+                            (j == 5 and (i == 2 or i == 3 or i == 4)):
+                        continue
+                    if self.put_blackhole(self.player1, i, j):
+                        action = "blackhole"
+                        cell_x = i
+                        cell_y = j
+                        self.blackhole_cells.append((i, j))
+                        (m, a, x, y) = self.max_alpha_beta(alpha, beta)
+                        if m < minv:
+                            minv = m
+                            action = a
+                            cell_x = x
+                            cell_y = y
+                        self.blackhole_cells.pop()
+                        self.player1.ship.blackholes += 1
+                        if minv <= alpha:
+                            return (minv, action, cell_x, cell_y)
+                        if minv < beta:
+                            beta = minv
+                    else:
+                        continue
 
         return (minv, action, cell_x, cell_y)
 
