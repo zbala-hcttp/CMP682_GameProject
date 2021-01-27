@@ -283,7 +283,8 @@ class Game:
             if (xc == self.player1.ship.cell_x and yc == self.player1.ship.cell_y)\
                     or (xc == self.player2.ship.cell_x and yc == self.player2.ship.cell_y)\
                         or (not self.is_position_valid(event.x, event.y)):
-                self.warning_text = "Illegal place to send blackhole! Please send another cell."
+                self.warning_text = "Illegal place to send blackhole! Please try another cell."
+                self.update_board()
             else:
                 if self.player1.ship.blackholes > 0:
                     for i in range(len(self.blackhole_cells)):
