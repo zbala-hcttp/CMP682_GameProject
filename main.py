@@ -220,10 +220,14 @@ class Game:
 
     def space_key(self, event):
         if self.turn and self.player1.lives > 0:
-            self.send_laser(self.player1, self.player2)
-            self.turn = False
-            if self.has_ended() == "None":
-                self.play()
+            if self.is_close(self.player1, self.player2):
+                self.send_laser(self.player1, self.player2)
+                self.turn = False
+                if self.has_ended() == "None":
+                    self.canvas.after(500, self.play)
+            else:
+                self.warning_text = "You are not close enough to the enemy!"
+                self.update_board()
         else:
             self.warning_text = "It is AI's turn!"
             self.update_board()
@@ -258,7 +262,7 @@ class Game:
 
     def send_laser(self, from_player, to_player):
         if from_player.is_out_of_lives() or to_player.is_out_of_lives():
-            print()
+            print("finished")
         elif self.is_close(from_player, to_player):
             self.canvas.create_line(from_player.ship.position_x, from_player.ship.position_y,
                                     to_player.ship.position_x, to_player.ship.position_y,
@@ -483,6 +487,9 @@ class Game:
 
         return (minv, action, cell_x, cell_y)
 
+    def do_nothing(self):
+        print("waiting...")
+
     def play(self):
         global depth
         depth = 0
@@ -496,7 +503,7 @@ class Game:
             self.player2.ship.blackholes -= 1
         print(action + " " + str(x)+ " "+str(y))
         self.turn = True
-        self.update_board()
+        self.canvas.after(500, self.update_board)
         self.has_player2_won()
 
     def mainloop(self):
