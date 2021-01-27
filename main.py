@@ -13,7 +13,7 @@ rows = 5
 cols = 5
 lives = 3
 lasers = 3
-blackholes = 3
+blackholes = 2
 depth = 0
 ai_wins = 0
 player_wins = 0
@@ -22,7 +22,7 @@ player_wins = 0
 class Game:
     def __init__(self):
         self.window = Tk()
-        self.window.title("Spaceship Game")
+        self.window.title("Spacecraft Wars")
         self.canvas = Canvas(self.window, width=width_of_canvas, height=height_of_canvas)
         self.canvas.pack()
         self.blackhole_img = ImageTk.PhotoImage(Image.open(r"images/blackhole.png"))
@@ -51,6 +51,7 @@ class Game:
         self.draw_warnings()
         self.draw_player1_info()
         self.draw_player2_info()
+        self.draw_statistics()
 
     def draw_board(self):
         for i in range(rows):
@@ -68,14 +69,14 @@ class Game:
 
     def draw_story(self):
         self.canvas.create_rectangle(10, 25, 180, 525)
-        self.canvas.create_text(95, 38, anchor=CENTER, text="Story", fill="#0E6655", font=("Purisa", 12, "bold"))
+        self.canvas.create_text(95, 38, anchor=CENTER, text="Story", fill="#0E6655", font=("Arial", 12, "bold"))
         self.canvas.create_line(10, 50, 180, 50)
-        self.canvas.create_text(13, 55, anchor=NW, fill="#138D75", font=("Purisa", 11),
-                                text="Reach to the opposite\nhome before your enemy\nreaches to yours\nand win the game!"
-                                     "\n\nWatch out for your\nenemy! He can send\nblackholes to your way or\nhe can sink your "
+        self.canvas.create_text(13, 55, anchor=NW, fill="#138D75", font=("Arial", 11),
+                                text="Reach to the opposite\nspaceport before your\nenemy reaches yours\nand win the game!"
+                                     "\n\nWatch out for your\nenemy! He can send\nblackholes to your way or\nhe can destroy your "
                                      "ship\nusing lasers.\n\nEach player has 3 lasers\nand 5 blackhole attacks.\n"
                                      "Lasers can be used\nwithin 2 blocks range.\n"
-                                     "Spaceships can survive\nonly 3 laser attacks."
+                                     "Spacecrafts can survive\nonly 3 laser attacks."
                                      "\n\nGood luck!")
 
     def draw_warnings(self):
@@ -83,25 +84,33 @@ class Game:
         turn = "AI's turn"
         if self.turn:
             turn = "Your turn"
-        self.canvas.create_text(475, 560, anchor=CENTER, text=turn, fill="#D81B60", font=("Purisa", 12))
+        self.canvas.create_text(475, 560, anchor=CENTER, text=turn, fill="#D81B60", font=("Arial", 12))
         self.canvas.create_text(203, 570, anchor=NW, text="Warning >> " + self.warning_text,
-                                fill="#CB4335", font=("Purisa", 12, "bold"))
+                                fill="#CB4335", font=("Arial", 12, "bold"))
 
     def draw_player2_info(self):
-        self.canvas.create_rectangle(720, 25, 940, 225)
-        self.canvas.create_text(830, 38, anchor=CENTER, text=self.player2.name, fill="#BF0238", font=("Purisa", 12, "bold"))
+        self.canvas.create_rectangle(720, 25, 940, 125)
+        self.canvas.create_text(830, 38, anchor=CENTER, text=self.player2.name, fill="#BF0238", font=("Arial", 12, "bold"))
         self.canvas.create_line(720, 50, 940, 50)
-        self.canvas.create_text(725, 55, anchor=NW, fill="#C70039", font=("Purisa", 11),
+        self.canvas.create_text(725, 55, anchor=NW, fill="#C70039", font=("Arial", 11),
                                 text="lives : " + str(self.player2.lives) +
                                      "\nblackholes : " + str(self.player2.ship.blackholes))
 
     def draw_player1_info(self):
-        self.canvas.create_rectangle(720, 325, 940, 525)
-        self.canvas.create_text(830, 338, anchor=CENTER, text=self.player1.name, fill="#1B618E", font=("Purisa", 12, "bold"))
-        self.canvas.create_line(720, 350, 940, 350)
-        self.canvas.create_text(725, 355, anchor=NW, fill="#2471A3", font=("Purisa", 11),
+        self.canvas.create_rectangle(720, 200, 940, 300)
+        self.canvas.create_text(830, 213, anchor=CENTER, text=self.player1.name, fill="#1B618E", font=("Arial", 12, "bold"))
+        self.canvas.create_line(720, 225, 940, 225)
+        self.canvas.create_text(725, 230, anchor=NW, fill="#2471A3", font=("Arial", 11),
                                 text="lives : " + str(self.player1.lives) +
                                      "\nblackholes : " + str(self.player1.ship.blackholes))
+
+    def draw_statistics(self):
+        self.canvas.create_rectangle(720, 370, 940, 470)
+        self.canvas.create_text(830, 383, anchor=CENTER, text="Statistics", fill="#1B618E", font=("Arial", 12, "bold"))
+        self.canvas.create_line(720, 395, 940, 395)
+        self.canvas.create_text(725, 400, anchor=NW, fill="#2471A3", font=("Arial", 11),
+                                text="AI : " + str(ai_wins) +
+                                     "\nYou : " + str(player_wins))
 
     def place_ships(self):
         self.canvas.create_image(self.player1.ship.position_x, self.player1.ship.position_y, anchor=NW,
@@ -117,6 +126,7 @@ class Game:
         self.draw_warnings()
         self.draw_player1_info()
         self.draw_player2_info()
+        self.draw_statistics()
         for i in range(len(self.blackhole_cells)):
             self.canvas.create_image((self.blackhole_cells[i][0] - 1) * 100 + 218,
                                      (self.blackhole_cells[i][1] - 1) * 100 + 42,
@@ -241,12 +251,16 @@ class Game:
     def has_player1_won(self):
         if (300 < self.player1.ship.position_x < 600 and 25 < self.player1.ship.position_y < 125) \
                 or self.player2.is_out_of_lives():
+            global player_wins
+            player_wins += 1
             self.is_end = "You"
             self.player_won()
 
     def has_player2_won(self):
         if (300 < self.player2.ship.position_x < 600 and 425 < self.player2.ship.position_y < 525) \
                 or self.player1.is_out_of_lives():
+            global ai_wins
+            ai_wins += 1
             self.is_end = "AI"
             self.player_lost()
 
@@ -389,8 +403,8 @@ class Game:
                     if maxv > alpha:
                         alpha = maxv
         if self.player2.ship.blackholes > 0:
-            for i in [self.player1.ship.cell_x - 1, self.player1.ship.cell_x, self.player1.ship.cell_x + 1]:
-                for j in [self.player1.ship.cell_y - 1, self.player1.ship.cell_y, self.player1.ship.cell_y + 1]:
+            for i in [self.player1.ship.cell_x, self.player1.ship.cell_x - 1, self.player1.ship.cell_x + 1]:
+                for j in [self.player1.ship.cell_y - 1, self.player1.ship.cell_y]:
                     if i == self.player1.ship.cell_x and j == self.player1.ship.cell_y:
                         continue
                     if (j == 1 and (i == 2 or i == 3 or i == 4)) or \
@@ -461,8 +475,8 @@ class Game:
                     if minv < beta:
                         beta = minv
         if self.player1.ship.blackholes > 0:
-            for i in [self.player2.ship.cell_x - 1, self.player2.ship.cell_x, self.player2.ship.cell_x + 1]:
-                for j in [self.player2.ship.cell_y - 1, self.player2.ship.cell_y, self.player2.ship.cell_y + 1]:
+            for i in [self.player2.ship.cell_x, self.player2.ship.cell_x - 1, self.player2.ship.cell_x + 1]:
+                for j in [self.player2.ship.cell_y + 1, self.player2.ship.cell_y]:
                     if i == self.player2.ship.cell_x and j == self.player2.ship.cell_y:
                         continue
                     if (j == 1 and (i == 2 or i == 3 or i == 4)) or \
