@@ -2,6 +2,9 @@ import math
 from tkinter import *
 from tkinter.messagebox import showinfo
 from PIL import ImageTk, Image
+import sys
+
+sys.setrecursionlimit(4000)
 
 width_of_canvas = 950
 height_of_canvas = 650
@@ -350,7 +353,7 @@ class Game:
             return (1, "nothing", 0, 0)
         elif result == "You" or self.player2.is_out_of_lives():
             return (-1, "nothing", 0, 0)
-        elif depth >= 3000:
+        elif depth >= 3500:
             return (0, "nothing", 0, 0)
 
         if self.is_close(self.player2, self.player1) and self.player2.ship.lasers > 0:
@@ -427,7 +430,7 @@ class Game:
             return (1, "nothing", 0, 0)
         elif result == "You":
             return (-1, "nothing", 0, 0)
-        elif depth >= 3000:
+        elif depth >= 3500:
             return (0, "nothing", 0, 0)
 
         if self.is_close(self.player1, self.player2) and self.player1.ship.lasers > 0:
