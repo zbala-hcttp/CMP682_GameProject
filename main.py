@@ -69,7 +69,7 @@ class Game:
                                 text="Reach to the opposite\nhome before your enemy\nreaches to yours\nand win the game!"
                                      "\n\nWatch out for your\nenemy! He can send\nblackholes to your way or\nhe can sink your "
                                      "ship\nusing lasers.\n\nEach player has 3 lasers\nand 5 blackhole attacks.\n"
-                                     "Lasers can be used\nwithin 3 blocks range.\n"
+                                     "Lasers can be used\nwithin 2 blocks range.\n"
                                      "Spaceships can survive\nonly 3 laser attacks."
                                      "\n\nGood luck!")
 
@@ -226,7 +226,7 @@ class Game:
                 if self.has_ended() == "None":
                     self.canvas.after(500, self.play)
             else:
-                self.warning_text = "You are not close enough to the enemy!"
+                self.warning_text = "You are not close enough to send laser to the enemy!"
                 self.update_board()
         else:
             self.warning_text = "It is AI's turn!"
