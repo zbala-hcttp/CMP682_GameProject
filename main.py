@@ -346,7 +346,6 @@ class Game:
             print("laser AI")
             self.player2.ship.lasers -= 1
             self.player1.lives -= 1
-            action = "laser"
             (m, a, x, y) = self.min_alpha_beta(alpha, beta)
             print(str(m) + " " + str(alpha) + " " + str(beta))
             if m > maxv:
@@ -367,7 +366,6 @@ class Game:
                     continue
                 if self.move(self.player2, i, j):
                     print("AI move "+ str(i) + " " + str(j))
-                    action = "move"
                     (m, a, x, y) = self.min_alpha_beta(alpha, beta)
                     if m > maxv:
                         maxv = m
@@ -387,7 +385,6 @@ class Game:
                         continue
                     if self.put_blackhole(self.player2, i, j):
                         self.blackhole_cells.append((i, j))
-                        action = "blackhole"
                         (m, a, x, y) = self.min_alpha_beta(alpha, beta)
                         if m > maxv:
                             maxv = m
@@ -406,7 +403,7 @@ class Game:
         return (maxv, action, cell_x, cell_y)
 
     def min_alpha_beta(self, alpha, beta):
-        minv= 2
+        minv = 2
         action = ""
         cell_x = 0
         cell_y = 0
@@ -421,7 +418,6 @@ class Game:
             return (0, "nothing", 0, 0)
 
         if self.is_close(self.player1, self.player2) and self.player1.ship.lasers > 0:
-            action = "laser"
             self.player1.ship.lasers -= 1
             self.player2.lives -= 1
             (m, a, x, y) = self.max_alpha_beta(alpha, beta)
@@ -440,7 +436,6 @@ class Game:
                 if i == j or i == -j:
                     continue
                 if self.move(self.player1, i, j):
-                    action = "move"
                     (m, a, x, y) = self.max_alpha_beta(alpha, beta)
                     if m < minv:
                         minv = m
@@ -459,7 +454,6 @@ class Game:
                             (j == 5 and (i == 2 or i == 3 or i == 4)):
                         continue
                     if self.put_blackhole(self.player1, i, j):
-                        action = "blackhole"
                         self.blackhole_cells.append((i, j))
                         (m, a, x, y) = self.max_alpha_beta(alpha, beta)
                         if m < minv:
