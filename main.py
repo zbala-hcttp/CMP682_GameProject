@@ -264,8 +264,8 @@ class Game:
         if from_player.is_out_of_lives() or to_player.is_out_of_lives():
             print("finished")
         elif self.is_close(from_player, to_player):
-            self.canvas.create_line(from_player.ship.position_x, from_player.ship.position_y,
-                                    to_player.ship.position_x, to_player.ship.position_y,
+            self.canvas.create_line(150 + 100 * from_player.ship.cell_x, -25 + 100 * from_player.ship.cell_y,
+                                    150 + 100 * to_player.ship.cell_x, -25 + 100 * to_player.ship.cell_y,
                                     fill="yellow", width=3)
             from_player.ship.lasers -= 1
             to_player.lives -= 1
