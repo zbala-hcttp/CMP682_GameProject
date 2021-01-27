@@ -13,7 +13,7 @@ rows = 5
 cols = 5
 lives = 3
 lasers = 3
-blackholes = 2
+blackholes = 3
 depth = 0
 
 
@@ -122,6 +122,7 @@ class Game:
 
     def new_game(self):
         self.turn = True
+        self.is_end = "None"
         self.player1.lives = lives
         self.player1.ship = BattleShip(419, 442, 3, 5, ImageTk.PhotoImage(Image.open(r"images/spaceship.png")))
         self.player2.lives = lives
