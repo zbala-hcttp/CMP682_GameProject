@@ -338,7 +338,7 @@ class Game:
             return (1, "nothing", 0, 0)
         elif result == "You" or self.player2.is_out_of_lives():
             return (-1, "nothing", 0, 0)
-        elif depth >= 1000:
+        elif depth >= 3000:
             return (0, "nothing", 0, 0)
 
         if self.is_close(self.player2, self.player1) and self.player2.ship.lasers > 0:
@@ -367,15 +367,14 @@ class Game:
                 if self.move(self.player2, i, j):
                     print("AI move "+ str(i) + " " + str(j))
                     action = "move"
-                    cell_x = i
-                    cell_y = j
                     (m, a, x, y) = self.min_alpha_beta(alpha, beta)
                     if m > maxv:
                         maxv = m
                         action = a
-                        cell_x = x
-                        cell_y = y
+                        cell_x = i
+                        cell_y = j
                     self.move(self.player2, -i, -j)
+                    action = "move"
                     if maxv >= beta:
                         return (maxv, action, cell_x, cell_y)
                     if maxv > alpha:
@@ -389,14 +388,12 @@ class Game:
                     if self.put_blackhole(self.player2, i, j):
                         self.blackhole_cells.append((i, j))
                         action = "blackhole"
-                        cell_x = i
-                        cell_y = j
                         (m, a, x, y) = self.min_alpha_beta(alpha, beta)
                         if m > maxv:
                             maxv = m
                             action = a
-                            cell_x = x
-                            cell_y = y
+                            cell_x = i
+                            cell_y = j
                         self.blackhole_cells.pop()
                         self.player2.ship.blackholes += 1
                         if maxv >= beta:
@@ -420,7 +417,7 @@ class Game:
             return (1, "nothing", 0, 0)
         elif result == "You":
             return (-1, "nothing", 0, 0)
-        elif depth >= 1000:
+        elif depth >= 3000:
             return (0, "nothing", 0, 0)
 
         if self.is_close(self.player1, self.player2) and self.player1.ship.lasers > 0:
@@ -431,8 +428,6 @@ class Game:
             if m < minv:
                 minv = m
                 action = a
-                cell_x = x
-                cell_y = y
             self.player1.ship.lasers += 1
             self.player2.lives += 1
             if minv <= alpha:
@@ -446,15 +441,14 @@ class Game:
                     continue
                 if self.move(self.player1, i, j):
                     action = "move"
-                    cell_x = i
-                    cell_y = j
                     (m, a, x, y) = self.max_alpha_beta(alpha, beta)
                     if m < minv:
                         minv = m
                         action = a
-                        cell_x = x
-                        cell_y = y
+                        cell_x = i
+                        cell_y = j
                     self.move(self.player1, -i, -j)
+                    action = "move"
                     if minv <= alpha:
                         return (minv, action, cell_x, cell_y)
                     if minv < beta:
@@ -467,15 +461,13 @@ class Game:
                         continue
                     if self.put_blackhole(self.player1, i, j):
                         action = "blackhole"
-                        cell_x = i
-                        cell_y = j
                         self.blackhole_cells.append((i, j))
                         (m, a, x, y) = self.max_alpha_beta(alpha, beta)
                         if m < minv:
                             minv = m
                             action = a
-                            cell_x = x
-                            cell_y = y
+                            cell_x = i
+                            cell_y = j
                         self.blackhole_cells.pop()
                         self.player1.ship.blackholes += 1
                         if minv <= alpha:
