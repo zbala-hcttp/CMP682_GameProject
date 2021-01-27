@@ -15,6 +15,8 @@ lives = 3
 lasers = 3
 blackholes = 3
 depth = 0
+ai_wins = 0
+player_wins = 0
 
 
 class Game:
@@ -258,12 +260,6 @@ class Game:
         self.new_game()
         self.init_board()
 
-    def calculate_euclidean_distance_of_ships(self):
-        distance = math.sqrt(sum((px - qx) ** 2.0 for px, qx
-                                 in zip([self.player1.ship.position_x, self.player1.ship.position_y],
-                                        [self.player2.ship.position_x, self.player2.ship.position_y])))
-        return distance
-
     def send_laser(self, from_player, to_player):
         if from_player.is_out_of_lives() or to_player.is_out_of_lives():
             print("finished")
@@ -324,10 +320,10 @@ class Game:
         distance = math.sqrt(sum((px - qx) ** 2.0 for px, qx
                                  in zip([self.player1.ship.position_x, self.player1.ship.position_y],
                                         [self.player2.ship.position_x, self.player2.ship.position_y])))
-        return distance
+        return int(distance)
 
     def is_close(self, from_player, to_player):
-        if self.calculate_euclidean_distance_of_ships() < 200 \
+        if self.calculate_euclidean_distance_of_ships() <= 200 \
                         and from_player.ship.has_lasers:
             return True
         return False
