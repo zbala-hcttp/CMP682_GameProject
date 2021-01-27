@@ -157,7 +157,8 @@ class Game:
                 self.turn = False
                 self.update_board()
                 self.has_player1_won()
-                self.play()
+                if self.has_ended() == "None":
+                    self.play()
             else:
                 self.warning_text = "This move is not valid. Try another move."
                 self.update_board()
@@ -173,7 +174,8 @@ class Game:
                 self.turn = False
                 self.update_board()
                 self.has_player1_won()
-                self.play()
+                if self.has_ended() == "None":
+                    self.play()
             else:
                 self.warning_text = "This move is not valid. Try another move."
                 self.has_player1_won()
@@ -189,7 +191,8 @@ class Game:
                 self.turn = False
                 self.update_board()
                 self.has_player1_won()
-                self.play()
+                if self.has_ended() == "None":
+                    self.play()
             else:
                 self.warning_text = "This move is not valid. Try another move."
                 self.update_board()
@@ -205,7 +208,9 @@ class Game:
                 self.warning_text = ""
                 self.turn = False
                 self.update_board()
-                self.play()
+                self.has_player1_won()
+                if self.has_ended() == "None":
+                    self.play()
             else:
                 self.warning_text = "This move is not valid. Try another move."
                 self.update_board()
@@ -217,7 +222,8 @@ class Game:
         if self.turn and self.player1.lives > 0:
             self.send_laser(self.player1, self.player2)
             self.turn = False
-            self.play()
+            if self.has_ended() == "None":
+                self.play()
         else:
             self.warning_text = "It is AI's turn!"
             self.update_board()
@@ -297,7 +303,8 @@ class Game:
                     self.player1.ship.blackholes -= 1
                     self.turn = False
                     self.update_board()
-                    self.play()
+                    if self.has_ended() == "None":
+                        self.play()
                 else:
                     self.warning_text = "You have run out of blackholes!"
                     self.update_board()
@@ -378,8 +385,10 @@ class Game:
                     if maxv > alpha:
                         alpha = maxv
         if self.player2.ship.blackholes > 0:
-            for i in range(1, 6):
-                for j in range(1, 6):
+            for i in [self.player1.ship.cell_x - 1, self.player1.ship.cell_x, self.player1.ship.cell_x + 1]:
+                for j in [self.player1.ship.cell_y - 1, self.player1.ship.cell_y, self.player1.ship.cell_y + 1]:
+                    if i == self.player1.ship.cell_x and j == self.player1.ship.cell_y:
+                        continue
                     if (j == 1 and (i == 2 or i == 3 or i == 4)) or \
                             (j == 5 and (i == 2 or i == 3 or i == 4)):
                         continue
@@ -448,8 +457,10 @@ class Game:
                     if minv < beta:
                         beta = minv
         if self.player1.ship.blackholes > 0:
-            for i in range(1, 6):
-                for j in range(1, 6):
+            for i in [self.player2.ship.cell_x - 1, self.player2.ship.cell_x, self.player2.ship.cell_x + 1]:
+                for j in [self.player2.ship.cell_y - 1, self.player2.ship.cell_y, self.player2.ship.cell_y + 1]:
+                    if i == self.player2.ship.cell_x and j == self.player2.ship.cell_y:
+                        continue
                     if (j == 1 and (i == 2 or i == 3 or i == 4)) or \
                             (j == 5 and (i == 2 or i == 3 or i == 4)):
                         continue
