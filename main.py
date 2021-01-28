@@ -48,10 +48,12 @@ class Game:
         self.draw_board()
         self.place_ships()
         self.draw_story()
+        self.draw_instructions()
         self.draw_warnings()
         self.draw_player1_info()
         self.draw_player2_info()
         self.draw_statistics()
+        self.draw_algorithm_details()
 
     def draw_board(self):
         for i in range(rows):
@@ -68,16 +70,25 @@ class Game:
         self.canvas.create_rectangle(300, 425, 600, 525, outline="#2980B9", width=2)
 
     def draw_story(self):
-        self.canvas.create_rectangle(10, 25, 180, 525)
+        self.canvas.create_rectangle(10, 25, 180, 390)
         self.canvas.create_text(95, 38, anchor=CENTER, text="Story", fill="#0E6655", font=("Arial", 12, "bold"))
         self.canvas.create_line(10, 50, 180, 50)
         self.canvas.create_text(13, 55, anchor=NW, fill="#138D75", font=("Arial", 11),
                                 text="Reach to the opposite\nspaceport before your\nenemy reaches yours\nand win the game!"
                                      "\n\nWatch out for your\nenemy! He can send\nblackholes to your way or\nhe can destroy your "
-                                     "ship\nusing lasers.\n\nEach player has 3 lasers\nand 5 blackhole attacks.\n"
+                                     "ship\nusing lasers.\n\nEach player has 3 lasers\nand 2 blackhole attacks.\n"
                                      "Lasers can be used\nwithin 2 blocks range.\n"
                                      "Spacecrafts can survive\nonly 3 laser attacks."
                                      "\n\nGood luck!")
+
+    def draw_instructions(self):
+        self.canvas.create_rectangle(10, 420, 180, 525)
+        self.canvas.create_text(95, 433, anchor=CENTER, text="Instructions", fill="#512E5F", font=("Arial", 12, "bold"))
+        self.canvas.create_line(10, 445, 180, 445)
+        self.canvas.create_text(13, 450, anchor=NW, fill="#633974", font=("Arial", 11),
+                                text="Move-> Arrow keys\n"
+                                     "Laser attack-> Space key\n"
+                                     "Blackhole-> Mouse click")
 
     def draw_warnings(self):
         self.canvas.create_rectangle(200, 550, 700, 600)
@@ -89,7 +100,7 @@ class Game:
                                 fill="#CB4335", font=("Arial", 12, "bold"))
 
     def draw_player2_info(self):
-        self.canvas.create_rectangle(720, 25, 940, 125)
+        self.canvas.create_rectangle(720, 25, 940, 100)
         self.canvas.create_text(830, 38, anchor=CENTER, text=self.player2.name, fill="#BF0238", font=("Arial", 12, "bold"))
         self.canvas.create_line(720, 50, 940, 50)
         self.canvas.create_text(725, 55, anchor=NW, fill="#C70039", font=("Arial", 11),
@@ -97,20 +108,28 @@ class Game:
                                      "\nblackholes : " + str(self.player2.ship.blackholes))
 
     def draw_player1_info(self):
-        self.canvas.create_rectangle(720, 200, 940, 300)
-        self.canvas.create_text(830, 213, anchor=CENTER, text=self.player1.name, fill="#1B618E", font=("Arial", 12, "bold"))
-        self.canvas.create_line(720, 225, 940, 225)
-        self.canvas.create_text(725, 230, anchor=NW, fill="#2471A3", font=("Arial", 11),
+        self.canvas.create_rectangle(720, 150, 940, 225)
+        self.canvas.create_text(830, 163, anchor=CENTER, text=self.player1.name, fill="#1B618E", font=("Arial", 12, "bold"))
+        self.canvas.create_line(720, 175, 940, 175)
+        self.canvas.create_text(725, 180, anchor=NW, fill="#2471A3", font=("Arial", 11),
                                 text="lives : " + str(self.player1.lives) +
                                      "\nblackholes : " + str(self.player1.ship.blackholes))
 
     def draw_statistics(self):
-        self.canvas.create_rectangle(720, 370, 940, 470)
-        self.canvas.create_text(830, 383, anchor=CENTER, text="Statistics", fill="#1B618E", font=("Arial", 12, "bold"))
-        self.canvas.create_line(720, 395, 940, 395)
-        self.canvas.create_text(725, 400, anchor=NW, fill="#2471A3", font=("Arial", 11),
+        self.canvas.create_rectangle(720, 275, 940, 350)
+        self.canvas.create_text(830, 288, anchor=CENTER, text="Statistics", fill="#DC7633", font=("Arial", 12, "bold"))
+        self.canvas.create_line(720, 300, 940, 300)
+        self.canvas.create_text(725, 305, anchor=NW, fill="#E67E22", font=("Arial", 11),
                                 text="AI : " + str(ai_wins) +
                                      "\nYou : " + str(player_wins))
+
+    def draw_algorithm_details(self):
+        self.canvas.create_rectangle(720, 400, 940, 475)
+        self.canvas.create_text(830, 413, anchor=CENTER, text="Tree Details", fill="#17A589", font=("Arial", 12, "bold"))
+        self.canvas.create_line(720, 425, 940, 425)
+        self.canvas.create_text(725, 430, anchor=NW, fill="#1ABC9C", font=("Arial", 11),
+                                text="Depth : " + str(depth) +
+                                     "\nBranching factor : " + str(depth * 7))
 
     def place_ships(self):
         self.canvas.create_image(self.player1.ship.position_x, self.player1.ship.position_y, anchor=NW,
@@ -123,10 +142,12 @@ class Game:
         self.draw_board()
         self.place_ships()
         self.draw_story()
+        self.draw_instructions()
         self.draw_warnings()
         self.draw_player1_info()
         self.draw_player2_info()
         self.draw_statistics()
+        self.draw_algorithm_details()
         for i in range(len(self.blackhole_cells)):
             self.canvas.create_image((self.blackhole_cells[i][0] - 1) * 100 + 218,
                                      (self.blackhole_cells[i][1] - 1) * 100 + 42,
