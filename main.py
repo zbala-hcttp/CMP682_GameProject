@@ -405,6 +405,7 @@ class Game:
                 return (maxv, action, cell_x, cell_y)
             if maxv > alpha:
                 alpha = maxv
+            depth -= 1
 
         for i in [0, -1, 1]:
             for j in [1, 0]:
@@ -423,6 +424,8 @@ class Game:
                         return (maxv, action, cell_x, cell_y)
                     if maxv > alpha:
                         alpha = maxv
+                    depth -= 1
+
         if self.player2.ship.blackholes > 0:
             for i in [self.player1.ship.cell_x, self.player1.ship.cell_x - 1, self.player1.ship.cell_x + 1]:
                 for j in [self.player1.ship.cell_y - 1, self.player1.ship.cell_y]:
@@ -445,6 +448,7 @@ class Game:
                             return (maxv, action, cell_x, cell_y)
                         if maxv > alpha:
                             alpha = maxv
+                        depth -= 1
                     else:
                         continue
 
@@ -478,6 +482,7 @@ class Game:
                 return (minv, action, cell_x, cell_y)
             if minv < beta:
                 beta = minv
+            depth -= 1
 
         for i in [0, -1, 1]:
             for j in [-1, 0]:
@@ -495,6 +500,7 @@ class Game:
                         return (minv, action, cell_x, cell_y)
                     if minv < beta:
                         beta = minv
+                    depth -= 1
         if self.player1.ship.blackholes > 0:
             for i in [self.player2.ship.cell_x, self.player2.ship.cell_x - 1, self.player2.ship.cell_x + 1]:
                 for j in [self.player2.ship.cell_y + 1, self.player2.ship.cell_y]:
@@ -517,6 +523,7 @@ class Game:
                             return (minv, action, cell_x, cell_y)
                         if minv < beta:
                             beta = minv
+                        depth -= 1
                     else:
                         continue
 
