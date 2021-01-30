@@ -17,6 +17,7 @@ blackholes = 2
 depth = 0
 ai_wins = 0
 player_wins = 0
+depth_count = 0
 
 
 class Game:
@@ -128,8 +129,8 @@ class Game:
         self.canvas.create_text(830, 413, anchor=CENTER, text="Tree Details", fill="#17A589", font=("Arial", 12, "bold"))
         self.canvas.create_line(720, 425, 940, 425)
         self.canvas.create_text(725, 430, anchor=NW, fill="#1ABC9C", font=("Arial", 11),
-                                text="Depth : " + str(depth) +
-                                     "\nBranching factor : " + str(depth * 7))
+                                text="Depth : " + str(depth_count) +
+                                     "\nBranching factor : " + str(depth))
 
     def place_ships(self):
         self.canvas.create_image(self.player1.ship.position_x, self.player1.ship.position_y, anchor=NW,
@@ -161,6 +162,10 @@ class Game:
         self.player2.lives = lives
         self.player2.ship = BattleShip(419, 48, 3, 1, ImageTk.PhotoImage(Image.open(r"images/ai_spaceship.png")))
         self.blackhole_cells = []
+        global depth
+        global depth_count
+        depth = 0
+        depth_count = 0
 
     def is_position_valid(self, x, y):
         if 200 <= x <= 700 and 25 <= y <= 525:
@@ -379,6 +384,7 @@ class Game:
         cell_y = 0
         global depth
         depth += 1
+        global depth_count
         result = self.has_ended()
 
         if result == "AI" or self.player1.is_out_of_lives():
@@ -389,6 +395,7 @@ class Game:
             return (0, "nothing", 0, 0)
 
         if self.is_close(self.player2, self.player1) and self.player2.ship.lasers > 0:
+            depth_count += 1
             print("laser AI")
             self.player2.ship.lasers -= 1
             self.player1.lives -= 1
@@ -402,14 +409,17 @@ class Game:
             self.player2.ship.lasers += 1
             self.player1.lives += 1
             if maxv >= beta:
+                depth_count -= 1
                 return (maxv, action, cell_x, cell_y)
             if maxv > alpha:
                 alpha = maxv
-            depth -= 1
+            depth_count -= 1
 
         for i in [0, -1, 1]:
             for j in [1, 0]:
+                depth_count += 1
                 if i == j or i == -j:
+                    depth_count -= 1
                     continue
                 if self.move(self.player2, i, j):
                     print("AI move "+ str(i) + " " + str(j))
@@ -421,18 +431,22 @@ class Game:
                         cell_y = j
                     self.move(self.player2, -i, -j)
                     if maxv >= beta:
+                        depth_count -= 1
                         return (maxv, action, cell_x, cell_y)
                     if maxv > alpha:
                         alpha = maxv
-                    depth -= 1
+                    depth_count -= 1
 
         if self.player2.ship.blackholes > 0:
             for i in [self.player1.ship.cell_x, self.player1.ship.cell_x - 1, self.player1.ship.cell_x + 1]:
                 for j in [self.player1.ship.cell_y - 1, self.player1.ship.cell_y]:
+                    depth_count += 1
                     if i == self.player1.ship.cell_x and j == self.player1.ship.cell_y:
+                        depth_count -= 1
                         continue
                     if (j == 1 and (i == 2 or i == 3 or i == 4)) or \
                             (j == 5 and (i == 2 or i == 3 or i == 4)):
+                        depth_count -= 1
                         continue
                     if self.put_blackhole(self.player2, i, j):
                         self.blackhole_cells.append((i, j))
@@ -445,11 +459,13 @@ class Game:
                         self.blackhole_cells.pop()
                         self.player2.ship.blackholes += 1
                         if maxv >= beta:
+                            depth_count -= 1
                             return (maxv, action, cell_x, cell_y)
                         if maxv > alpha:
                             alpha = maxv
-                        depth -= 1
+                        depth_count -= 1
                     else:
+                        depth_count -= 1
                         continue
 
         return (maxv, action, cell_x, cell_y)
@@ -460,6 +476,7 @@ class Game:
         cell_x = 0
         cell_y = 0
         global depth
+        global depth_count
         depth += 1
         result = self.has_ended()
         if result == "AI":
@@ -470,6 +487,7 @@ class Game:
             return (0, "nothing", 0, 0)
 
         if self.is_close(self.player1, self.player2) and self.player1.ship.lasers > 0:
+            depth_count += 1
             self.player1.ship.lasers -= 1
             self.player2.lives -= 1
             (m, a, x, y) = self.max_alpha_beta(alpha, beta)
@@ -479,14 +497,17 @@ class Game:
             self.player1.ship.lasers += 1
             self.player2.lives += 1
             if minv <= alpha:
+                depth_count -= 1
                 return (minv, action, cell_x, cell_y)
             if minv < beta:
                 beta = minv
-            depth -= 1
+            depth_count -= 1
 
         for i in [0, -1, 1]:
             for j in [-1, 0]:
+                depth_count += 1
                 if i == j or i == -j:
+                    depth_count -= 1
                     continue
                 if self.move(self.player1, i, j):
                     (m, a, x, y) = self.max_alpha_beta(alpha, beta)
@@ -497,17 +518,21 @@ class Game:
                         cell_y = j
                     self.move(self.player1, -i, -j)
                     if minv <= alpha:
+                        depth_count -= 1
                         return (minv, action, cell_x, cell_y)
                     if minv < beta:
                         beta = minv
-                    depth -= 1
+                    depth_count -= 1
         if self.player1.ship.blackholes > 0:
             for i in [self.player2.ship.cell_x, self.player2.ship.cell_x - 1, self.player2.ship.cell_x + 1]:
                 for j in [self.player2.ship.cell_y + 1, self.player2.ship.cell_y]:
+                    depth_count += 1
                     if i == self.player2.ship.cell_x and j == self.player2.ship.cell_y:
+                        depth_count -= 1
                         continue
                     if (j == 1 and (i == 2 or i == 3 or i == 4)) or \
                             (j == 5 and (i == 2 or i == 3 or i == 4)):
+                        depth_count -= 1
                         continue
                     if self.put_blackhole(self.player1, i, j):
                         self.blackhole_cells.append((i, j))
@@ -520,11 +545,13 @@ class Game:
                         self.blackhole_cells.pop()
                         self.player1.ship.blackholes += 1
                         if minv <= alpha:
+                            depth_count -= 1
                             return (minv, action, cell_x, cell_y)
                         if minv < beta:
                             beta = minv
-                        depth -= 1
+                        depth_count -= 1
                     else:
+                        depth_count -= 1
                         continue
 
         return (minv, action, cell_x, cell_y)
@@ -534,7 +561,9 @@ class Game:
 
     def play(self):
         global depth
+        global depth_count
         depth = 0
+        depth_count = 0
         (minv, action, x, y) = self.max_alpha_beta(-2, 2)
         if action == "laser":
             self.send_laser(self.player2, self.player1)
